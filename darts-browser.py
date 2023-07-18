@@ -3,12 +3,12 @@
 import typing
 import sys
 from PyQt6 import QtCore
-from PyQt6.QtWidgets import *
+from PyQt6.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QHBoxLayout
 from PyQt6.QtGui import *
 from PyQt6.QtCore import *
-from PyQt6.QtWebEngineWidgets import *
+from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWidgets import QWidget
-from PyQt6.QtWebEngineCore import *
+from PyQt6.QtWebEngineCore import QWebEngineProfile, QWebEnginePage
 
 class MyWebBrowser(QMainWindow):
 

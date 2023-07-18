@@ -23,6 +23,11 @@ class MyWebBrowser(QMainWindow):
         self.window.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
         # self.window.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
 
+        # TODO Auswahl des Bildschirms implementieren
+        """ self.screens = app.screens()
+        print(self.screens)
+        self.window.setScreen(self.screens[0]) """
+
         self.layout = QVBoxLayout()
         self.horizontal = QHBoxLayout()
 

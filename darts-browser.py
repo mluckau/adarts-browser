@@ -32,7 +32,6 @@ class MyWebBrowser(QMainWindow):
         self.window.setScreen(self.screens[0]) """
 
         self.layout = QVBoxLayout()
-        self.horizontal = QHBoxLayout()
 
         # Setup Browser 1
         self.browser1 = QWebEngineView()

@@ -52,9 +52,8 @@ class MyWebBrowser(QMainWindow):
 
         # set SignalHandler
         # TODO implement Signals um die geladenen Seiten mit Javascript zu manipulieren
-        # self.browser1.page().loadStarted.connect(self.onLoadFinished)
-        # self.browser1.urlChanged.connect(self.onLoadFinished)
         self.browser1.loadFinished.connect(self.onLoadFinished)
+        self.browser2.loadFinished.connect(self.onLoadFinished)
 
     def loadPages(self):
         self.browser1.setUrl(QUrl(url1))
@@ -65,7 +64,9 @@ class MyWebBrowser(QMainWindow):
         self.window.showFullScreen()
 
     def onLoadFinished(self, ok):
-        print("Hallo")
+        # TODO implemt Code um die Seite zu manipulieren, Titelleiste ausblenden etc.
+        if ok:
+            print("Hallo")
 
 
 def main():

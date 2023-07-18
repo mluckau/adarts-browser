@@ -15,7 +15,8 @@ url2 = config["url"]["url2"]
 
 
 class MyWebBrowser(QMainWindow):
-    def __init__(self):
+    def __init__(self, *args, **kwargs):
+        super(MyWebBrowser, self).__init__(*args, **kwargs)
         self.initUi()
         self.loadPages()
         # self.showWindow()
@@ -34,7 +35,7 @@ class MyWebBrowser(QMainWindow):
         self.layout = QVBoxLayout()
 
         # Setup Browser 1
-        self.browser1 = QWebEngineView()
+        self.browser1 = QWebEngineView(self)
         self.profile1 = QWebEngineProfile("storage-1", self.browser1)
         self.profile1.setPersistentStoragePath(os.getcwd() + ("/Storage1"))
         self.webpage1 = QWebEnginePage(self.profile1, self.browser1)
@@ -51,8 +52,8 @@ class MyWebBrowser(QMainWindow):
 
         # set SignalHandler
         # TODO implement Signals um die geladenen Seiten mit Javascript zu manipulieren
-        self.browser1.page().loadStarted.connect(self.onLoadFinished)
-        self.browser1.urlChanged.connect(self.onLoadFinished)
+        # self.browser1.page().loadStarted.connect(self.onLoadFinished)
+        # self.browser1.urlChanged.connect(self.onLoadFinished)
         self.browser1.loadFinished.connect(self.onLoadFinished)
 
     def loadPages(self):

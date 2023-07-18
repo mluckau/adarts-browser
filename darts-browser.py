@@ -1,23 +1,27 @@
-
-#https://youtu.be/v02KG5S_ESo?t=549
-import typing
 import sys
+import configparser
 from PyQt6 import QtCore
 from PyQt6.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QHBoxLayout
-from PyQt6.QtGui import *
-from PyQt6.QtCore import *
+
+# from PyQt6.QtGui import *
+from PyQt6.QtCore import QUrl
 from PyQt6.QtWebEngineWidgets import QWebEngineView
 from PyQt6.QtWidgets import QWidget
 from PyQt6.QtWebEngineCore import QWebEngineProfile, QWebEnginePage
 
-class MyWebBrowser(QMainWindow):
+config = configparser.ConfigParser()
+config.read("config.ini")
 
+url1 = config["url"]["url1"]
+url2 = config["url"]["url2"]
+
+
+class MyWebBrowser(QMainWindow):
     def __init__(self):
-        
         self.window = QWidget()
         self.window.setWindowTitle("Autodarts Webbrowser")
         self.window.setWindowFlags(QtCore.Qt.WindowType.FramelessWindowHint)
-        #self.window.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
+        # self.window.setAttribute(QtCore.Qt.WidgetAttribute.WA_TranslucentBackground)
 
         self.layout = QVBoxLayout()
         self.horizontal = QHBoxLayout()
@@ -25,11 +29,10 @@ class MyWebBrowser(QMainWindow):
         self.browser1 = QWebEngineView()
         self.browser2 = QWebEngineView()
 
-        #self.storage_location = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppDataLocation)
+        # self.storage_location = QStandardPaths.writableLocation(QStandardPaths.StandardLocation.AppDataLocation)
 
         self.profile1 = QWebEngineProfile("storage-1", self.browser1)
         self.profile2 = QWebEngineProfile("storage-2", self.browser2)
-
 
         self.webpage1 = QWebEnginePage(self.profile1, self.browser1)
         self.webpage2 = QWebEnginePage(self.profile2, self.browser2)
@@ -40,16 +43,14 @@ class MyWebBrowser(QMainWindow):
         self.layout.addWidget(self.browser1)
         self.layout.addWidget(self.browser2)
 
-        self.browser1.load(QUrl("https://autodarts.io/boards/7350f3e4-21a0-4616-a37e-0e2ae0c16028/follow"))
-        self.browser2.load(QUrl("https://autodarts.io/boards/7350f3e4-21a0-4616-a37e-0e2ae0c16028/follow"))
+        self.browser1.load(QUrl(url1))
+        self.browser2.load(QUrl(url2))
 
         self.window.setLayout(self.layout)
-        self.window.showMaximized()
+        # self.window.showMaximized()
+        self.window.showFullScreen()
 
-    
+
 app = QApplication(sys.argv)
 window = MyWebBrowser()
 app.exec()
-
-
-

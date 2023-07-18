@@ -69,6 +69,11 @@ class MyWebBrowser(QMainWindow):
             print("Hallo")
 
 
+# FIXME
+# Release of profile requested but WebEnginePage still not deleted. Expect troubles !
+# https://stackoverflow.com/questions/64719361/closing-qwebengineview-warns-release-of-profile-requested-but-webenginepage-sti
+
+
 def main():
     app = QApplication(sys.argv)
     window = MyWebBrowser()

@@ -25,13 +25,12 @@ url1 = config.get("url", "url1")
 url2 = config.get("url", "url2")
 
 css_style = config.getboolean("style", "activate")
+browsers = config.getint("main", "browsers")
 
 
 def injectCSS(view, path, name):
     path = QFile(path)
-    print(path.fileName())
     if not path.open(QFile.ReadOnly | QFile.Text):
-        print("Huhu")
         return
     css = path.readAll().data().decode("utf-8")
     # print(css)
@@ -99,20 +98,22 @@ class MyWebBrowser(QMainWindow):
         self.webpage2 = QWebEnginePage(self.profile2, self.browser2)
         self.webpage2.loadFinished.connect(self._on_Load_Finished)
         self.browser2.setPage(self.webpage2)
-        self.layout.addWidget(self.browser2)
+        if browsers >= 2:
+            self.layout.addWidget(self.browser2)
 
     def loadPages(self):
         self.browser1.page().setUrl(QUrl(url1))
-        self.browser2.page().setUrl(QUrl(url2))
+        if browsers >= 2:
+            self.browser2.page().setUrl(QUrl(url2))
 
     def showWindow(self):
         self.window.setLayout(self.layout)
         self.window.showFullScreen()
 
     def _on_Load_Finished(self, ok):
-        print("onLoadFinished triggered")
         if ok and css_style:
             injectCSS(self.browser1, os.getcwd() + "/style.css", "injectedCSS")
+            injectCSS(self.browser2, os.getcwd() + "/style.css", "injectedCSS")
 
 
 # FIXME

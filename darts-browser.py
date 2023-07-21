@@ -81,7 +81,7 @@ class AutodartsBrowser(QMainWindow):
         self.profile1 = QWebEngineProfile("browser-1", self.browser1)
         self.profile1.setPersistentStoragePath(os.getcwd() + cache_dir + ("browser1"))
         self.webpage1 = QWebEnginePage(self.profile1, self.browser1)
-        self.webpage1.loadFinished.connect(self._on_Load_Finished)
+        self.webpage1.loadFinished.connect(self._on_Load_Finished_1)
         self.webpage1.settings().setAttribute(
             QWebEngineSettings.WebAttribute.ShowScrollBars, False
         )
@@ -96,7 +96,7 @@ class AutodartsBrowser(QMainWindow):
                 os.getcwd() + cache_dir + ("browser2")
             )
             self.webpage2 = QWebEnginePage(self.profile2, self.browser2)
-            self.webpage2.loadFinished.connect(self._on_Load_Finished)
+            self.webpage2.loadFinished.connect(self._on_Load_Finished_2)
             self.browser2.setPage(self.webpage2)
             self.layout.addWidget(self.browser2)
 
@@ -109,9 +109,12 @@ class AutodartsBrowser(QMainWindow):
         self.window.setLayout(self.layout)
         self.window.showFullScreen()
 
-    def _on_Load_Finished(self, ok):
+    def _on_Load_Finished_1(self, ok):
         if ok and css_style:
             injectCSS(self.browser1, os.getcwd() + "/style.css", "injectedCSS")
+
+    def _on_Load_Finished_2(self, ok):
+        if ok and css_style:
             injectCSS(self.browser2, os.getcwd() + "/style.css", "injectedCSS")
 
 

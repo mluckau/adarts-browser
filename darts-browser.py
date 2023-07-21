@@ -1,8 +1,6 @@
 import sys
 import os
 import configparser
-
-# from PyQt6 import QtCore
 from PySide6.QtWidgets import (
     QMainWindow,
     QApplication,
@@ -21,11 +19,12 @@ from PySide6.QtWebEngineCore import (
 config = configparser.ConfigParser()
 config.read("config.ini")
 
-url1 = config.get("url", "url1")
-url2 = config.get("url", "url2")
+url1 = f'https://autodarts.io/boards/{config.get("boards", "board1_id")}/follow'
+url2 = f'https://autodarts.io/boards/{config.get("boards", "board2_id")}/follow'
 
 css_style = config.getboolean("style", "activate")
 browsers = config.getint("main", "browsers")
+cache_dir = config.get("main", "cachedir")
 
 
 def injectCSS(view, path, name):
@@ -33,7 +32,6 @@ def injectCSS(view, path, name):
     if not path.open(QFile.ReadOnly | QFile.Text):
         return
     css = path.readAll().data().decode("utf-8")
-    # print(css)
     SCRIPT = """
     (function() {
     css = document.createElement('style');
@@ -57,9 +55,9 @@ def injectCSS(view, path, name):
     view.page().scripts().insert(script)
 
 
-class MyWebBrowser(QMainWindow):
+class AutodartsBrowser(QMainWindow):
     def __init__(self, *args, **kwargs):
-        super(MyWebBrowser, self).__init__(*args, **kwargs)
+        super(AutodartsBrowser, self).__init__(*args, **kwargs)
         self.initUi()
         self.loadPages()
 
@@ -69,7 +67,6 @@ class MyWebBrowser(QMainWindow):
         self.window.setWindowFlag(Qt.WindowType.FramelessWindowHint, True)
         self.window.setWindowFlag(Qt.WindowStaysOnTopHint, True)
         self.window.setStyleSheet("background-color: rgb(0, 0, 0);")
-        # self.window.setAttribute(Qt.WidgetAttribute.WA_TranslucentBackground)
 
         # TODO Auswahl des Bildschirms implementieren
         """ self.screens = app.screens()
@@ -81,8 +78,8 @@ class MyWebBrowser(QMainWindow):
 
         # Setup Browser 1
         self.browser1 = QWebEngineView(self)
-        self.profile1 = QWebEngineProfile("storage-1", self.browser1)
-        self.profile1.setPersistentStoragePath(os.getcwd() + ("/Storage1"))
+        self.profile1 = QWebEngineProfile("browser-1", self.browser1)
+        self.profile1.setPersistentStoragePath(os.getcwd() + cache_dir + ("browser1"))
         self.webpage1 = QWebEnginePage(self.profile1, self.browser1)
         self.webpage1.loadFinished.connect(self._on_Load_Finished)
         self.webpage1.settings().setAttribute(
@@ -92,13 +89,15 @@ class MyWebBrowser(QMainWindow):
         self.layout.addWidget(self.browser1)
 
         # Setup Browser 2
-        self.browser2 = QWebEngineView(self)
-        self.profile2 = QWebEngineProfile("storage-2", self.browser2)
-        self.profile2.setPersistentStoragePath(os.getcwd() + ("/Storage2"))
-        self.webpage2 = QWebEnginePage(self.profile2, self.browser2)
-        self.webpage2.loadFinished.connect(self._on_Load_Finished)
-        self.browser2.setPage(self.webpage2)
         if browsers >= 2:
+            self.browser2 = QWebEngineView(self)
+            self.profile2 = QWebEngineProfile("browser-2", self.browser2)
+            self.profile2.setPersistentStoragePath(
+                os.getcwd() + cache_dir + ("browser2")
+            )
+            self.webpage2 = QWebEnginePage(self.profile2, self.browser2)
+            self.webpage2.loadFinished.connect(self._on_Load_Finished)
+            self.browser2.setPage(self.webpage2)
             self.layout.addWidget(self.browser2)
 
     def loadPages(self):
@@ -123,7 +122,7 @@ class MyWebBrowser(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
-    window = MyWebBrowser()
+    window = AutodartsBrowser()
     window.showWindow()
     sys.exit(app.exec())
 

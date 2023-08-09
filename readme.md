@@ -23,4 +23,4 @@ jetzt alles so einstellen wie man es mag und anschließend mit ALT+F4 schließen
 jetzt activate = 1 unter style eintragen und abspeichern und nano beenden
 
 `python3 darts-browser.py`
-jetzt sollte eiegtnlcih alles passen :-D Viel Spaß!
+jetzt sollte eiegtnlich alles passen :-D Viel Spaß!

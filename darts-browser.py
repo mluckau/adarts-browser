@@ -1,7 +1,7 @@
 import sys
 import os
 import configparser
-from PySide6.QtWidgets import (
+from PyQt5.QtWidgets import (
     QMainWindow,
     QApplication,
     QVBoxLayout,

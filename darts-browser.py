@@ -7,9 +7,9 @@ from PySide6.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
-from PySide6.QtCore import QUrl, QFile, Qt
-from PySide6.QtWebEngineWidgets import QWebEngineView
-from PySide6.QtWebEngineCore import (
+from PyQt5.QtCore import QUrl, QFile, Qt
+from PyQt5.QtWebEngineWidgets import (
+    QWebEngineView,
     QWebEngineProfile,
     QWebEnginePage,
     QWebEngineScript,

@@ -17,7 +17,9 @@ from PySide6.QtWebEngineCore import (
 )
 
 config = configparser.ConfigParser()
+working_path = os.path.abspath(__file__)
 config.read("config.ini")
+print(working_path)
 
 url1 = f'https://autodarts.io/boards/{config.get("boards", "board1_id")}/follow'
 url2 = f'https://autodarts.io/boards/{config.get("boards", "board2_id")}/follow'

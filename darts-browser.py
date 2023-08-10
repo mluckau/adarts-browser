@@ -18,7 +18,7 @@ from PyQt5.QtWebEngineWidgets import (
 
 config = configparser.ConfigParser()
 working_path, filename = os.path.split(os.path.abspath(__file__))
-config.read(working_path + "config.ini")
+config.read(working_path + "/config.ini")
 
 url1 = f'https://autodarts.io/boards/{config.get("boards", "board1_id")}/follow'
 url2 = f'https://autodarts.io/boards/{config.get("boards", "board2_id")}/follow'

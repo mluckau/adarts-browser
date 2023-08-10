@@ -17,7 +17,7 @@ from PySide6.QtWebEngineCore import (
 )
 
 config = configparser.ConfigParser()
-working_path = os.path.abspath(__file__)
+working_path, filename = os.path.split(os.path.abspath(__file__))
 config.read("config.ini")
 print(working_path)
 

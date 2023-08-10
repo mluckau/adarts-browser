@@ -17,7 +17,8 @@ from PyQt5.QtWebEngineWidgets import (
 )
 
 config = configparser.ConfigParser()
-config.read("config.ini")
+working_path = os.path.abspath(__file__)
+config.read(working_path + "config.ini")
 
 url1 = f'https://autodarts.io/boards/{config.get("boards", "board1_id")}/follow'
 url2 = f'https://autodarts.io/boards/{config.get("boards", "board2_id")}/follow'
@@ -79,7 +80,7 @@ class AutodartsBrowser(QMainWindow):
         # Setup Browser 1
         self.browser1 = QWebEngineView(self)
         self.profile1 = QWebEngineProfile("browser-1", self.browser1)
-        self.profile1.setPersistentStoragePath(os.getcwd() + cache_dir + ("browser1"))
+        self.profile1.setPersistentStoragePath(working_path + cache_dir + ("browser1"))
         self.webpage1 = QWebEnginePage(self.profile1, self.browser1)
         self.webpage1.loadFinished.connect(self._on_Load_Finished_1)
         self.webpage1.settings().setAttribute(
@@ -93,7 +94,7 @@ class AutodartsBrowser(QMainWindow):
             self.browser2 = QWebEngineView(self)
             self.profile2 = QWebEngineProfile("browser-2", self.browser2)
             self.profile2.setPersistentStoragePath(
-                os.getcwd() + cache_dir + ("browser2")
+                working_path + cache_dir + ("browser2")
             )
             self.webpage2 = QWebEnginePage(self.profile2, self.browser2)
             self.webpage2.loadFinished.connect(self._on_Load_Finished_2)
@@ -111,11 +112,11 @@ class AutodartsBrowser(QMainWindow):
 
     def _on_Load_Finished_1(self, ok):
         if ok and css_style:
-            injectCSS(self.browser1, os.getcwd() + "/style.css", "injectedCSS")
+            injectCSS(self.browser1, working_path + "/style.css", "injectedCSS")
 
     def _on_Load_Finished_2(self, ok):
         if ok and css_style:
-            injectCSS(self.browser2, os.getcwd() + "/style.css", "injectedCSS")
+            injectCSS(self.browser2, working_path + "/style.css", "injectedCSS")
 
 
 # FIXME

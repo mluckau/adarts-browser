@@ -88,7 +88,7 @@ class AutodartsBrowser(QMainWindow):
         if browsers >= 2:
             self.frame = QFrame(self)
             self.frame.setObjectName("frame")
-            self.frame.setMaximumSize(QSize(16777215, 15))
+            self.frame.setMaximumSize(QSize(16777215, 20))
             self.frame.setFrameShape(QFrame.StyledPanel)
             self.frame.setFrameShadow(QFrame.Raised)
 

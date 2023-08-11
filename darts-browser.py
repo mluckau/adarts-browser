@@ -1,13 +1,9 @@
 import sys
 import os
 import configparser
-from PySide6.QtWidgets import (
-    QMainWindow,
-    QApplication,
-    QVBoxLayout,
-    QWidget,
-)
-from PySide6.QtCore import QUrl, QFile, Qt
+from PySide6.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QWidget, QFrame
+from PySide6.QtCore import QUrl, QFile, Qt, QSize
+from PySide6.QtSvg import QSvgRenderer
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWebEngineCore import (
     QWebEngineProfile,
@@ -89,6 +85,18 @@ class AutodartsBrowser(QMainWindow):
         )
         self.browser1.setPage(self.webpage1)
         self.layout.addWidget(self.browser1)
+
+        self.frame = QFrame(self)
+        self.frame.setObjectName("frame")
+        self.frame.setMaximumSize(QSize(16777215, 100))
+        self.frame.setFrameShape(QFrame.StyledPanel)
+        self.frame.setFrameShadow(QFrame.Raised)
+
+        self.layout.addWidget(self.frame)
+        svgWidget = QSvgWidget()
+        svgWidget.renderer().load("/ASC_Logo.svg")
+        svgWidget.setGeometry(100, 100, 300, 300)
+        svgWidget.show()
 
         # Setup Browser 2
         if browsers >= 2:

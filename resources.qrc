@@ -1,0 +1,5 @@
+<RCC>
+  <qresource prefix="ASC_Logo">
+    <file>ASC_Logo.svg</file>
+  </qresource>
+</RCC>

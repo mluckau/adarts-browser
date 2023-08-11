@@ -1,13 +1,8 @@
 import sys
 import os
 import configparser
-from PyQt5.QtWidgets import (
-    QMainWindow,
-    QApplication,
-    QVBoxLayout,
-    QWidget,
-)
-from PyQt5.QtCore import QUrl, QFile, Qt
+from PyQt5.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QWidget, QFrame
+from PyQt5.QtCore import QUrl, QFile, Qt, QSize
 from PyQt5.QtWebEngineWidgets import (
     QWebEngineView,
     QWebEngineProfile,
@@ -91,6 +86,12 @@ class AutodartsBrowser(QMainWindow):
 
         # Setup Browser 2
         if browsers >= 2:
+            self.frame = QFrame(self)
+            self.frame.setObjectName("frame")
+            self.frame.setMaximumSize(QSize(16777215, 15))
+            self.frame.setFrameShape(QFrame.StyledPanel)
+            self.frame.setFrameShadow(QFrame.Raised)
+
             self.browser2 = QWebEngineView(self)
             self.profile2 = QWebEngineProfile("browser-2", self.browser2)
             self.profile2.setPersistentStoragePath(

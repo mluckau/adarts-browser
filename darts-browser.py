@@ -7,6 +7,7 @@ from PyQt5.QtWidgets import (
     QVBoxLayout,
     QWidget,
 )
+from PyQt5.QtSvg import QSvgWidget, QSvgRenderer
 from PyQt5.QtCore import QUrl, QFile, Qt
 from PyQt5.QtWebEngineWidgets import (
     QWebEngineView,
@@ -88,6 +89,11 @@ class AutodartsBrowser(QMainWindow):
         )
         self.browser1.setPage(self.webpage1)
         self.layout.addWidget(self.browser1)
+
+        svgWidget = QSvgWidget()
+        svgWidget.renderer().load("/logo.svg")
+        svgWidget.setGeometry(100, 100, 300, 300)
+        svgWidget.show()
 
         # Setup Browser 2
         if browsers >= 2:

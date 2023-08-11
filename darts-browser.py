@@ -1,14 +1,9 @@
 import sys
 import os
 import configparser
-from PyQt5.QtWidgets import (
-    QMainWindow,
-    QApplication,
-    QVBoxLayout,
-    QWidget,
-)
+from PyQt5.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QWidget, QFrame
 from PyQt5.QtSvg import QSvgWidget, QSvgRenderer
-from PyQt5.QtCore import QUrl, QFile, Qt
+from PyQt5.QtCore import QUrl, QFile, Qt, QSize
 from PyQt5.QtWebEngineWidgets import (
     QWebEngineView,
     QWebEngineProfile,
@@ -93,7 +88,16 @@ class AutodartsBrowser(QMainWindow):
         svgWidget = QSvgWidget()
         svgWidget.renderer().load("/logo.svg")
         svgWidget.setGeometry(100, 100, 300, 300)
-        svgWidget.show()
+
+        self.layout.addWidget(svgWidget)
+
+        self.frame = QFrame(self)
+        self.frame.setObjectName("frame")
+        self.frame.setMaximumSize(QSize(16777215, 100))
+        self.frame.setFrameShape(QFrame.StyledPanel)
+        self.frame.setFrameShadow(QFrame.Raised)
+
+        self.layout.addWidget(self.frame)
 
         # Setup Browser 2
         if browsers >= 2:

@@ -51,7 +51,20 @@ def injectCSS(view, path, name):
     view.page().scripts().insert(script)
 
 
-class AutodartsBrowser(QMainWindow):
+class MyWindow(QMainWindow):
+    def closeEvent(self, event):
+        """Overwrite QWidget method"""
+        print("CloseEvent")
+        if event.spontaneous():
+            # Sets the accept flag of the event object, indicates that the event receiver wants the event.
+            event.accept()
+            # Schedules this object for deletion, QObject
+            self.browser1.page().deleteLater()
+            if browsers >= 2:
+                self.browser2.page().deleteLater()
+
+
+class AutodartsBrowser(MyWindow):
     def __init__(self, *args, **kwargs):
         super(AutodartsBrowser, self).__init__(*args, **kwargs)
         self.initUi()
@@ -125,12 +138,17 @@ class AutodartsBrowser(QMainWindow):
 # https://sdestackoverflow.com/questions/64719361/closing-qwebengineview-warns-release-of-profile-requested-but-webenginepage-sti
 
 
-def main():
-    app = QApplication(sys.argv)
+# FIXME
+# Critical Bug, zu viele Dateie geöffnet
+# https://www.howtogeek.com/805629/too-many-open-files-linux/
+
+
+def main(app):
     window = AutodartsBrowser()
     window.showWindow()
-    sys.exit(app.exec())
+    app.exec()
 
 
 if __name__ == "__main__":
-    main()
+    app = QApplication(sys.argv)
+    main(app)

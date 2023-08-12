@@ -86,6 +86,7 @@ class AutodartsBrowser(QMainWindow):
         self.browser1.setPage(self.webpage1)
         self.layout.addWidget(self.browser1)
 
+        # schwarzer Balken zwischen beiden Browsern
         self.frame = QFrame(self)
         self.frame.setObjectName("frame")
         self.frame.setMaximumSize(QSize(16777215, 20))

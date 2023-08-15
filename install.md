@@ -1,4 +1,8 @@
-# X11vnc installieren
+# Installation
+
+Diese Anleitung ist für Manjaro Xfce geschrieben, sollte aber, so oder so ähnlich, auch mit anderen Systemen funktionieren.
+
+## X11vnc installieren
 
 ```bash
 sudo pacman -S x11vnc
@@ -7,7 +11,7 @@ x11vnc -storepasswd
 
 (vnc Passwort anlegen)
 
-## Service anlegen
+### Service anlegen
 
 ``` bash
 nano .local/share/systemd/user/x11vnc_user.service
@@ -28,7 +32,7 @@ RestartSec=10
 WantedBy=default.target
 ```
 
-## Service starten
+### Service starten
 
 ``` bash
 systemctl --user daemon-reload
@@ -38,7 +42,7 @@ systemctl start --user x11vnc_user
 
 Als Client empfehle ich "Remmina"
 
-# Autodartsbrowser Setup
+## Autodartsbrowser Setup
 
 Repository clonen
 

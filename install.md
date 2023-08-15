@@ -1,7 +1,5 @@
 # X11vnc installieren
 
-## x11vnc installieren
-
 ```bash
 sudo pacman -S x11vnc
 x11vnc -storepasswd 
@@ -40,7 +38,7 @@ systemctl start --user x11vnc_user
 
 Als Client empfehle ich "Remmina"
 
-## Autodartsbrowser Setup
+# Autodartsbrowser Setup
 
 Repository clonen
 

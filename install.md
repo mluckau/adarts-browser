@@ -76,7 +76,7 @@ config.ini bearbeiten(style activate = 1)
 nano config.ini
 ```
 
-## Adarts Autostart
+## Adarts-Browser Autostart
 
 ### Startscript anlegen
 

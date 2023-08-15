@@ -86,7 +86,7 @@ nano ~/scripts/start_dartsbrowser.sh
 ```
 
 ``` bash
-!#/bin/bash
+#!/bin/bash
 cd ~/adarts-browser/
 source .venv/bin/activate
 python darts-browser.py

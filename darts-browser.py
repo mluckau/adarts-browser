@@ -87,13 +87,13 @@ class AutodartsBrowser(QMainWindow):
         self.layout.addWidget(self.browser1)
 
         # schwarzer Balken zwischen beiden Browsern
-        self.frame = QFrame(self)
+        """ self.frame = QFrame(self)
         self.frame.setObjectName("frame")
         self.frame.setMaximumSize(QSize(16777215, 20))
         self.frame.setFrameShape(QFrame.StyledPanel)
         self.frame.setFrameShadow(QFrame.Raised)
 
-        self.layout.addWidget(self.frame)
+        self.layout.addWidget(self.frame) """
         # svgWidget = QSvgWidget()
         # svgWidget.renderer().load("/ASC_Logo.svg")
         # svgWidget.setGeometry(100, 100, 300, 300)

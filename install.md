@@ -39,6 +39,11 @@ systemctl start --user x11vnc_user
 ## Autodartsbrowser Setup
 
 Repository clonen
+
+``` bash
+git clone https://github.com/mluckau/adarts-browser.git
+```
+
 ``` bash
 cd adarts-browser
 
@@ -52,10 +57,22 @@ cp config_example.ini config.ini
 ```
 
 config.ini bearbeiten(style activate = o)
-``` bash
-python darts-browser.py (alles einstellen)
+
+```bash
+nano config.ini
 ```
+
+Das erste mal starten und alles so einstellen wie es sein soll
+
+``` bash
+python darts-browser.py 
+```
+
 config.ini bearbeiten(style activate = 1)
+
+```bash
+nano config.ini
+```
 
 ## Adarts Autostart
 

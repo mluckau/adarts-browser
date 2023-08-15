@@ -1,10 +1,12 @@
-## X11vnc installieren
+# X11vnc installieren
 
-### x11vnc installieren
+## x11vnc installieren
+
 ```bash
 sudo pacman -S x11vnc
 x11vnc -storepasswd 
 ```
+
 (vnc Passwort anlegen)
 
 ## Service anlegen
@@ -96,7 +98,7 @@ python darts-browser.py
 chmod +x start_dartsbrowser.sh
 ```
 
-### Desktop Entry anlegen
+### Autostart Desktop Entry anlegen
 
 ``` bash
 nano ~/.config/autostart/autodarts-browser.desktop
@@ -114,4 +116,3 @@ StartupNotify=false
 Terminal=false
 Hidden=false
 ```
-

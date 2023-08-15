@@ -6,3 +6,5 @@ _cache
 config copy.ini
 config.ini
 logo.svg
+target/pylist.json
+resources_rc.py

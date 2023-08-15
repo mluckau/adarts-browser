@@ -36,6 +36,8 @@ systemctl enable --user x11vnc_user
 systemctl start --user x11vnc_user
 ```
 
+Als Client empfehle ich "Remmina"
+
 ## Autodartsbrowser Setup
 
 Repository clonen

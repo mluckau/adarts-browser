@@ -114,3 +114,15 @@ StartupNotify=false
 Terminal=false
 Hidden=false
 ```
+
+## Mauszeiger ausblenden
+
+```bash
+sudo pacman -S unclutter
+```
+
+starten mit
+
+``` bash
+unclutter &
+```

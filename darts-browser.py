@@ -94,9 +94,6 @@ class AutodartsBrowser(QMainWindow):
         self.frame.setFrameShadow(QFrame.Raised)
 
         self.layout.addWidget(self.frame) """
-        # svgWidget = QSvgWidget()
-        # svgWidget.renderer().load("/ASC_Logo.svg")
-        # svgWidget.setGeometry(100, 100, 300, 300)
 
         # Setup Browser 2
         if browsers >= 2:

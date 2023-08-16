@@ -32,8 +32,12 @@ body {
     background-position: center !important;
     background-repeat: no-repeat !important;
     background-size: 25% !important;
-    background-blend-mode: darken !important;
+    background-blend-mode: luminosity !important;
     background-color: #1C2E3E !important;
 
     /* https: //www.svgbackgrounds.com/tools/svg-to-css/ */
+}
+
+.css-1dklj6k {
+    padding-top: 50px !important;
 }

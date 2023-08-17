@@ -24,6 +24,31 @@ css_style = config.getboolean("style", "activate")
 browsers = config.getint("main", "browsers")
 cache_dir = config.get("main", "cachedir")
 
+autologin = config.getboolean("login", "enable")
+max_logins = config.getint("login", "versuche")
+username = config.get("login", "username")
+passwort = config.get("login", "passwort")
+
+logins_1 = 0
+logins_2 = 0
+
+if autologin:
+    LOGINSCRIPT = f"""
+    let user = document.querySelector('#username');
+    user.value = '{username}';
+
+    let pass = document.querySelector('#password');
+    pass.value = '{passwort}';
+
+    let rmb = document.querySelector('input[id="rememberMe"]');
+    rmb.focus();
+    rmb.click();
+
+    let btn = document.querySelector('input[id="kc-login"]');
+    btn.focus();
+    btn.click();
+    """
+
 
 def injectCSS(view, path, name):
     path = QFile(path)
@@ -116,13 +141,67 @@ class AutodartsBrowser(QMainWindow):
         self.window.setLayout(self.layout)
         self.window.showFullScreen()
 
+    def _login_browser1(self):
+        self.browser1.page().runJavaScript(
+            LOGINSCRIPT, QWebEngineScript.ApplicationWorld
+        )
+
+    def _login_browser2(self):
+        self.browser2.page().runJavaScript(
+            LOGINSCRIPT, QWebEngineScript.ApplicationWorld
+        )
+
+    def _check_login_1(self, html):
+        global logins_1
+        if html:
+            if "Sign" in html:
+                logins_1 += 1
+                print(
+                    f"[Browser 1] Nicht eingelogt - Versuche Login {logins_1}/{max_logins}"
+                )
+
+                self._login_browser1()
+
+    def _check_login_2(self, html):
+        global logins_2
+        if html:
+            if "Sign" in html:
+                logins_2 += 1
+                print(
+                    f"[Browser 2] Nicht eingelogt - Versuche Login {logins_2}/{max_logins}"
+                )
+
+                self._login_browser2()
+
     def _on_Load_Finished_1(self, ok):
         if ok and css_style:
             injectCSS(self.browser1, os.getcwd() + "/style.css", "injectedCSS")
 
+        if ok and autologin and logins_1 < max_logins:
+            self.browser1.page().runJavaScript(
+                "try{document.querySelector(\"h1[id='kc-page-title']\").innerHTML;}catch(error){console.log('bereits eingelogt')}",
+                QWebEngineScript.ApplicationWorld,
+                self._check_login_1,
+            )
+        elif autologin and logins_1 >= max_logins:
+            print("[Browser 1] Maximale Anzahl an Loginversuche erreicht")
+        elif not autologin:
+            print("[Browser 1] Autologin deaktiviert")
+
     def _on_Load_Finished_2(self, ok):
         if ok and css_style:
             injectCSS(self.browser2, os.getcwd() + "/style.css", "injectedCSS")
+
+        if ok and autologin and logins_2 < max_logins:
+            self.browser2.page().runJavaScript(
+                "try{document.querySelector(\"h1[id='kc-page-title']\").innerHTML;}catch(error){console.log('bereits eingelogt')}",
+                QWebEngineScript.ApplicationWorld,
+                self._check_login_2,
+            )
+        elif autologin and logins_2 >= max_logins:
+            print("[Browser 2] Maximale Anzahl an Loginversuche erreicht")
+        elif not autologin:
+            print("[Browser 2] Autologin deaktiviert")
 
 
 # FIXME

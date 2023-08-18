@@ -23,6 +23,9 @@ css_style = config.getboolean("style", "activate")
 browsers = config.getint("main", "browsers")
 cache_dir = config.get("main", "cachedir")
 
+logo_enable = config.getboolean("logo", "enable")
+logo_url = config.get("logo", "url")
+
 autologin = config.getboolean("login", "enable")
 max_logins = config.getint("login", "versuche")
 username = config.get("login", "username")
@@ -50,13 +53,13 @@ if autologin:
 
 
 def insert_logo(view, name):
-    LOGO_SCRIPT = """
-    (function() {
+    LOGO_SCRIPT = f"""
+    (function() {{
         let img = document.createElement('img');
-        img.src ='https://raw.githubusercontent.com/mluckau/adarts-browser/logo_unten-rechts/logo.svg';
-        img.class = "logo-bottom-right"
+        img.src ='{logo_url}';
+        img.classList.add("logo-bottom-right");
         document.body.appendChild(img);
-    })()
+    }})()
     """
 
     script = QWebEngineScript()
@@ -195,6 +198,8 @@ class AutodartsBrowser(QMainWindow):
     def _on_Load_Finished_1(self, ok):
         if ok and css_style:
             injectCSS(self.browser1, os.getcwd() + "/style.css", "injectedCSS")
+            if logo_enable:
+                insert_logo(self.browser1, "logo")
 
         if ok and autologin and logins_1 < max_logins:
             self.browser1.page().runJavaScript(
@@ -210,7 +215,8 @@ class AutodartsBrowser(QMainWindow):
     def _on_Load_Finished_2(self, ok):
         if ok and css_style:
             injectCSS(self.browser2, os.getcwd() + "/style.css", "injectedCSS")
-            insert_logo(self.browser2, "logo")
+            if logo_enable:
+                insert_logo(self.browser2, "logo")
 
         if ok and autologin and logins_2 < max_logins:
             self.browser2.page().runJavaScript(

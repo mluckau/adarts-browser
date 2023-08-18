@@ -23,13 +23,14 @@ css_style = config.getboolean("style", "activate")
 browsers = config.getint("main", "browsers")
 cache_dir = config.get("main", "cachedir")
 
-logo_enable = config.getboolean("logo", "enable")
-logo_url = config.get("logo", "url")
+logos_enable = config.getboolean("logos", "enable")
+logos_local = config.getboolean("logos", "local")
+logo = config.get("logos", "logo")
 
-autologin = config.getboolean("login", "enable")
-max_logins = config.getint("login", "versuche")
-username = config.get("login", "username")
-passwort = config.get("login", "passwort")
+autologin = config.getboolean("autologin", "enable")
+max_logins = config.getint("autologin", "versuche")
+username = config.get("autologin", "username")
+passwort = config.get("autologin", "passwort")
 
 logins_1 = 0
 logins_2 = 0
@@ -51,8 +52,18 @@ if autologin:
     btn.click();
     """
 
+if css_style and logos_enable and logos_local:
+    from http_server import ServeDirectoryWithHTTP
+
+    ServeDirectoryWithHTTP()
+
 
 def insert_logo(view, name):
+    if logos_local:
+        logo_url = f"http://localhost:3344/{logo}"
+    else:
+        logo_url = logo
+    print(f"Logofile: {logo_url}")
     LOGO_SCRIPT = f"""
     (function() {{
         let img = document.createElement('img');
@@ -183,7 +194,7 @@ class AutodartsBrowser(QMainWindow):
         if self.browser1.url().toString().split("#")[0] == url1:
             if ok and css_style:
                 injectCSS(self.browser1, os.getcwd() + "/style.css", "injectedCSS")
-                if logo_enable:
+                if logos_enable:
                     insert_logo(self.browser1, "logo")
         else:
             if ok and autologin and logins_1 < max_logins:
@@ -197,7 +208,7 @@ class AutodartsBrowser(QMainWindow):
         if self.browser2.url().toString().split("#")[0] == url2:
             if ok and css_style:
                 injectCSS(self.browser2, os.getcwd() + "/style.css", "injectedCSS")
-                if logo_enable:
+                if logos_enable:
                     insert_logo(self.browser2, "logo")
         else:
             if ok and autologin and logins_2 < max_logins:

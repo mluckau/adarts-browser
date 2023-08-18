@@ -64,12 +64,18 @@ def insert_logo(view, name):
         logo_url = logo
     print(f"Logofile: {logo_url}")
     LOGO_SCRIPT = f"""
+    try{{
     (function() {{
         let img = document.createElement('img');
         img.src ='{logo_url}';
         img.classList.add("logo-bottom-right");
         document.body.appendChild(img);
     }})()
+    }}
+    catch(error)
+    {{
+    console.log('Mixed Content');
+    }}
     """
 
     script = QWebEngineScript()
@@ -88,6 +94,8 @@ def injectCSS(view, path, name):
         return
     css = path.readAll().data().decode("utf-8")
     SCRIPT = """
+    try
+    {
     (function() {
     css = document.createElement('style');
     css.type = 'text/css';
@@ -95,6 +103,11 @@ def injectCSS(view, path, name):
     document.head.appendChild(css);
     css.innerText = `%s`;
     })()
+    }
+    catch(error)
+    {
+    console.log('mixed content');
+    }
     """ % (
         name,
         css,

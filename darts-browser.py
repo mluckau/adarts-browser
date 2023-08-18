@@ -53,9 +53,9 @@ def insert_logo(view, name):
     LOGO_SCRIPT = """
     (function() {
         let img = document.createElement('img');
-        img.src ='/logo.svg';
+        img.src ='https://raw.githubusercontent.com/mluckau/adarts-browser/logo_unten-rechts/logo.svg';
         img.class = "logo-bottom-right"
-        document.getElementById('body').appendChild(img);
+        document.body.appendChild(img);
     })()
     """
 

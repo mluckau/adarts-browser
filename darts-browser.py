@@ -1,9 +1,8 @@
 import sys
 import os
 import configparser
-from PySide6.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QWidget, QFrame
-from PySide6.QtCore import QUrl, QFile, Qt, QSize
-from PySide6.QtSvg import QSvgRenderer
+from PySide6.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QWidget
+from PySide6.QtCore import QUrl, QFile, Qt
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWebEngineCore import (
     QWebEngineProfile,

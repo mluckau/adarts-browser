@@ -9,3 +9,5 @@ target/pylist.json
 resources_rc.py
 ASC_Logo.svg
 test.js
+ASC_Logo_os_emboss.svg
+__pycache__

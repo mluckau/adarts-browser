@@ -164,70 +164,48 @@ class AutodartsBrowser(QMainWindow):
         self.window.showFullScreen()
 
     def _login_browser1(self):
+        global logins_1
+        logins_1 += 1
+        print(f"[Browser 1] Nicht eingelogt - Versuche Login {logins_1}/{max_logins}")
         self.browser1.page().runJavaScript(
             LOGINSCRIPT, QWebEngineScript.ApplicationWorld
         )
 
     def _login_browser2(self):
+        global logins_2
+        logins_2 += 1
+        print(f"[Browser 2] Nicht eingelogt - Versuche Login {logins_2}/{max_logins}")
         self.browser2.page().runJavaScript(
             LOGINSCRIPT, QWebEngineScript.ApplicationWorld
         )
 
-    def _check_login_1(self, html):
-        global logins_1
-        if html:
-            if "Sign" in html:
-                logins_1 += 1
-                print(
-                    f"[Browser 1] Nicht eingelogt - Versuche Login {logins_1}/{max_logins}"
-                )
-
-                self._login_browser1()
-
-    def _check_login_2(self, html):
-        global logins_2
-        if html:
-            if "Sign" in html:
-                logins_2 += 1
-                print(
-                    f"[Browser 2] Nicht eingelogt - Versuche Login {logins_2}/{max_logins}"
-                )
-
-                self._login_browser2()
-
     def _on_Load_Finished_1(self, ok):
-        if ok and css_style:
-            injectCSS(self.browser1, os.getcwd() + "/style.css", "injectedCSS")
-            if logo_enable:
-                insert_logo(self.browser1, "logo")
-
-        if ok and autologin and logins_1 < max_logins:
-            self.browser1.page().runJavaScript(
-                "try{document.querySelector(\"h1[id='kc-page-title']\").innerHTML;}catch(error){console.log('bereits eingelogt')}",
-                QWebEngineScript.ApplicationWorld,
-                self._check_login_1,
-            )
-        elif autologin and logins_1 >= max_logins:
-            print("[Browser 1] Maximale Anzahl an Loginversuche erreicht")
-        elif not autologin:
-            print("[Browser 1] Autologin deaktiviert")
+        if self.browser1.url().toString().split("#")[0] == url1:
+            if ok and css_style:
+                injectCSS(self.browser1, os.getcwd() + "/style.css", "injectedCSS")
+                if logo_enable:
+                    insert_logo(self.browser1, "logo")
+        else:
+            if ok and autologin and logins_1 < max_logins:
+                self._login_browser1()
+            elif autologin and logins_1 >= max_logins:
+                print("[Browser 1] Maximale Anzahl an Loginversuche erreicht")
+            elif not autologin:
+                print("[Browser 1] Autologin deaktiviert")
 
     def _on_Load_Finished_2(self, ok):
-        if ok and css_style:
-            injectCSS(self.browser2, os.getcwd() + "/style.css", "injectedCSS")
-            if logo_enable:
-                insert_logo(self.browser2, "logo")
-
-        if ok and autologin and logins_2 < max_logins:
-            self.browser2.page().runJavaScript(
-                "try{document.querySelector(\"h1[id='kc-page-title']\").innerHTML;}catch(error){console.log('bereits eingelogt')}",
-                QWebEngineScript.ApplicationWorld,
-                self._check_login_2,
-            )
-        elif autologin and logins_2 >= max_logins:
-            print("[Browser 2] Maximale Anzahl an Loginversuche erreicht")
-        elif not autologin:
-            print("[Browser 2] Autologin deaktiviert")
+        if self.browser2.url().toString().split("#")[0] == url2:
+            if ok and css_style:
+                injectCSS(self.browser2, os.getcwd() + "/style.css", "injectedCSS")
+                if logo_enable:
+                    insert_logo(self.browser2, "logo")
+        else:
+            if ok and autologin and logins_2 < max_logins:
+                self._login_browser2()
+            elif autologin and logins_2 >= max_logins:
+                print("[Browser 2] Maximale Anzahl an Loginversuche erreicht")
+            elif not autologin:
+                print("[Browser 2] Autologin deaktiviert")
 
 
 # FIXME

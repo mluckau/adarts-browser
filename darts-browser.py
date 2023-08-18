@@ -49,6 +49,26 @@ if autologin:
     """
 
 
+def insert_logo(view, name):
+    LOGO_SCRIPT = """
+    (function() {
+        let img = document.createElement('img');
+        img.src ='/logo.svg';
+        img.class = "logo-bottom-right"
+        document.getElementById('body').appendChild(img);
+    })()
+    """
+
+    script = QWebEngineScript()
+    view.page().runJavaScript(LOGO_SCRIPT, QWebEngineScript.ApplicationWorld)
+    script.setName(name)
+    script.setSourceCode(LOGO_SCRIPT)
+    script.setInjectionPoint(QWebEngineScript.DocumentReady)
+    script.setRunsOnSubFrames(True)
+    script.setWorldId(QWebEngineScript.ApplicationWorld)
+    view.page().scripts().insert(script)
+
+
 def injectCSS(view, path, name):
     path = QFile(path)
     if not path.open(QFile.ReadOnly | QFile.Text):
@@ -190,6 +210,7 @@ class AutodartsBrowser(QMainWindow):
     def _on_Load_Finished_2(self, ok):
         if ok and css_style:
             injectCSS(self.browser2, os.getcwd() + "/style.css", "injectedCSS")
+            insert_logo(self.browser2, "logo")
 
         if ok and autologin and logins_2 < max_logins:
             self.browser2.page().runJavaScript(

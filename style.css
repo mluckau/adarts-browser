@@ -43,3 +43,10 @@ body {
     color: darkkhaki !important;
     padding-top: 50px !important;
 }
+
+.logo-bottom-right {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    z-index: 9999;
+}

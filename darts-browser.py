@@ -15,8 +15,8 @@ config = configparser.ConfigParser()
 working_path, filename = os.path.split(os.path.abspath(__file__))
 config.read("config.ini")
 
-url1 = f'https://autodarts.io/boards/{config.get("boards", "board1_id")}/follow'
-url2 = f'https://autodarts.io/boards/{config.get("boards", "board2_id")}/follow'
+url1 = f'https://play.autodarts.io/boards/{config.get("boards", "board1_id")}/follow'
+url2 = f'https://play.autodarts.io/boards/{config.get("boards", "board2_id")}/follow'
 
 css_style = config.getboolean("style", "activate")
 browsers = config.getint("main", "browsers")

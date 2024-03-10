@@ -1,4 +1,4 @@
-.css-0 {
+.chakra-wrap.css-0 {
     display: none !important;
 }
 
@@ -44,11 +44,11 @@ body {
     padding-top: 50px !important;
 }
 
-.logo-bottom-right {
+/* .logo-bottom-right {
     position: absolute;
     bottom: 10px;
     right: 10px;
     z-index: 9999;
     width: 200px;
     mix-blend-mode: normal;
-}
+} */

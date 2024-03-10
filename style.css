@@ -1,3 +1,4 @@
+/* Titelzeile */
 .chakra-wrap.css-0 {
     display: none !important;
 }
@@ -7,6 +8,11 @@
 }
 
 .css-58dqdt {
+    display: none !important;
+}
+
+/* Titelzeile bei ausbullen */
+.css-k008qs {
     display: none !important;
 }
 

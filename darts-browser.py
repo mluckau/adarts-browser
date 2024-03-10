@@ -147,7 +147,8 @@ class AutodartsBrowser(QMainWindow):
         # Setup Browser 1
         self.browser1 = QWebEngineView(self)
         self.profile1 = QWebEngineProfile("browser-1", self.browser1)
-        self.profile1.setPersistentStoragePath(os.getcwd() + cache_dir + ("browser1"))
+        self.profile1.setPersistentStoragePath(
+            os.getcwd() + cache_dir + ("browser1"))
         self.webpage1 = QWebEnginePage(self.profile1, self.browser1)
         self.webpage1.loadFinished.connect(self._on_Load_Finished_1)
         self.webpage1.settings().setAttribute(
@@ -174,6 +175,9 @@ class AutodartsBrowser(QMainWindow):
             )
             self.webpage2 = QWebEnginePage(self.profile2, self.browser2)
             self.webpage2.loadFinished.connect(self._on_Load_Finished_2)
+            self.webpage2.settings().setAttribute(
+                QWebEngineSettings.WebAttribute.ShowScrollBars, False
+            )
             self.browser2.setPage(self.webpage2)
             self.layout.addWidget(self.browser2)
 
@@ -189,7 +193,8 @@ class AutodartsBrowser(QMainWindow):
     def _login_browser1(self):
         global logins_1
         logins_1 += 1
-        print(f"[Browser 1] Nicht eingelogt - Versuche Login {logins_1}/{max_logins}")
+        print(
+            f"[Browser 1] Nicht eingelogt - Versuche Login {logins_1}/{max_logins}")
         self.browser1.page().runJavaScript(
             LOGINSCRIPT, QWebEngineScript.ApplicationWorld
         )
@@ -197,7 +202,8 @@ class AutodartsBrowser(QMainWindow):
     def _login_browser2(self):
         global logins_2
         logins_2 += 1
-        print(f"[Browser 2] Nicht eingelogt - Versuche Login {logins_2}/{max_logins}")
+        print(
+            f"[Browser 2] Nicht eingelogt - Versuche Login {logins_2}/{max_logins}")
         self.browser2.page().runJavaScript(
             LOGINSCRIPT, QWebEngineScript.ApplicationWorld
         )
@@ -205,7 +211,8 @@ class AutodartsBrowser(QMainWindow):
     def _on_Load_Finished_1(self, ok):
         if self.browser1.url().toString().split("#")[0] == url1:
             if ok and css_style:
-                injectCSS(self.browser1, os.getcwd() + "/style.css", "injectedCSS")
+                injectCSS(self.browser1, os.getcwd() +
+                          "/style.css", "injectedCSS")
                 if logos_enable:
                     insert_logo(self.browser1, "logo")
         else:
@@ -219,7 +226,8 @@ class AutodartsBrowser(QMainWindow):
     def _on_Load_Finished_2(self, ok):
         if self.browser2.url().toString().split("#")[0] == url2:
             if ok and css_style:
-                injectCSS(self.browser2, os.getcwd() + "/style.css", "injectedCSS")
+                injectCSS(self.browser2, os.getcwd() +
+                          "/style.css", "injectedCSS")
                 if logos_enable:
                     insert_logo(self.browser2, "logo")
         else:

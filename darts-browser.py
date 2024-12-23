@@ -10,13 +10,19 @@ from PySide6.QtWebEngineCore import (
     QWebEngineScript,
     QWebEngineSettings,
 )
+from watchdog.observers import Observer
+from watchdog.events import FileSystemEventHandler
+import time
 
 config = configparser.ConfigParser()
 working_path, filename = os.path.split(os.path.abspath(__file__))
+config_path = os.path.join(working_path, "config.ini")
 config.read("config.ini")
 
-url1 = f'https://play.autodarts.io/boards/{config.get("boards", "board1_id")}/follow'
-url2 = f'https://play.autodarts.io/boards/{config.get("boards", "board2_id")}/follow'
+url1 = f'https://play.autodarts.io/boards/{
+    config.get("boards", "board1_id")}/follow'
+url2 = f'https://play.autodarts.io/boards/{
+    config.get("boards", "board2_id")}/follow'
 
 css_style = config.getboolean("style", "activate")
 browsers = config.getint("main", "browsers")
@@ -121,6 +127,21 @@ def injectCSS(view, path, name):
     script.setRunsOnSubFrames(True)
     script.setWorldId(QWebEngineScript.ApplicationWorld)
     view.page().scripts().insert(script)
+
+
+class ConfigFileEventHandler(FileSystemEventHandler):
+    def on_modified(self, event):
+        if event.src_path == config_path:
+            print("config.ini wurde geändert, starte das Programm neu...")
+            os.execv(sys.executable, ['python'] + sys.argv)
+
+
+def start_config_watcher():
+    event_handler = ConfigFileEventHandler()
+    observer = Observer()
+    observer.schedule(event_handler, path=working_path, recursive=False)
+    observer.start()
+    return observer
 
 
 class AutodartsBrowser(QMainWindow):
@@ -246,9 +267,15 @@ class AutodartsBrowser(QMainWindow):
 
 def main():
     app = QApplication(sys.argv)
+    observer = start_config_watcher()
     window = AutodartsBrowser()
     window.showWindow()
     sys.exit(app.exec())
+    try:
+        sys.exit(app.exec())
+    finally:
+        observer.stop()
+        observer.join()
 
 
 if __name__ == "__main__":

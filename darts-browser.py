@@ -2,7 +2,7 @@ import sys
 import os
 import configparser
 from PySide6.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QWidget
-from PySide6.QtCore import QUrl, QFile, Qt
+from PySide6.QtCore import QUrl, QFile, Qt, QTimer
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWebEngineCore import (
     QWebEngineProfile,
@@ -39,6 +39,9 @@ passwort = config.get("autologin", "passwort")
 
 logins_1 = 0
 logins_2 = 0
+
+# Globale Variable für das Fenster
+window = None
 
 if autologin:
     LOGINSCRIPT = f"""
@@ -267,17 +270,48 @@ class AutodartsBrowser(QMainWindow):
                 print("[Browser 2] Autologin deaktiviert")
 
 
-# FIXME
-# Release of profile requested but WebEnginePage still not deleted. Expect troubles !
-# https://sdestackoverflow.com/questions/64719361/closing-qwebengineview-warns-release-of-profile-requested-but-webenginepage-sti
+cleanup_executed = False  # Flag, um doppelte Bereinigung zu verhindern
+
+# Bereinigung der Ressourcen
+
+
+def cleanup():
+    global cleanup_executed
+    if cleanup_executed:
+        return
+    cleanup_executed = True
+
+    print("[INFO] Bereinige Ressourcen vor dem Beenden...")
+
+    if hasattr(window, 'browser1'):
+        window.browser1.close()
+        window.browser1.setPage(None)
+        window.webpage1.deleteLater()
+        window.browser1.deleteLater()
+        window.profile1.deleteLater()
+
+    if hasattr(window, 'browser2'):
+        window.browser2.close()
+        window.browser2.setPage(None)
+        window.webpage2.deleteLater()
+        window.browser2.deleteLater()
+        window.profile2.deleteLater()
+
+    print("[INFO] Ressourcenbereinigung abgeschlossen.")
+
+    # Verzögerung hinzufügen, um die Ereignisschleife laufen zu lassen
+    QTimer.singleShot(100, QApplication.quit)
 
 
 def main():
+    global window  # Zugriff auf die globale Variable
     app = QApplication(sys.argv)
+
+    app.aboutToQuit.connect(cleanup)
+
     observer = start_config_watcher()
     window = AutodartsBrowser()
     window.showWindow()
-    sys.exit(app.exec())
     try:
         sys.exit(app.exec())
     finally:

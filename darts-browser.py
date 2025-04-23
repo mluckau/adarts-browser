@@ -42,19 +42,79 @@ logins_2 = 0
 
 if autologin:
     LOGINSCRIPT = f"""
-    let user = document.querySelector('#username');
-    user.value = '{username}';
+    try {{
+        document.addEventListener('DOMContentLoaded', () => {{
+            console.log('DOMContentLoaded ausgelöst.');
+            let user = document.querySelector('#username');
+            if (user) {{
+                console.log('Benutzername-Feld gefunden.');
+                user.value = '{username}';
+                console.log('Benutzername erfolgreich gesetzt.');
+            }} else {{
+                console.log('Benutzername-Feld nicht gefunden.');
+            }}
 
-    let pass = document.querySelector('#password');
-    pass.value = '{passwort}';
+            let pass = document.querySelector('#password');
+            if (pass) {{
+                pass.value = '{passwort}';
+                console.log('Passwort erfolgreich gesetzt.');
+            }} else {{
+                console.log('Passwort-Feld nicht gefunden.');
+            }}
 
-    let rmb = document.querySelector('input[id="rememberMe"]');
-    rmb.focus();
-    rmb.click();
+            let rmb = document.querySelector('input[id="rememberMe"]');
+            if (rmb) {{
+                rmb.focus();
+                rmb.click();
+            }}
 
-    let btn = document.querySelector('input[id="kc-login"]');
-    btn.focus();
-    btn.click();
+            let btn = document.querySelector('input[id="kc-login"]');
+            if (btn) {{
+                btn.focus();
+                btn.click();
+                console.log('Login-Button geklickt.');
+            }} else {{
+                console.log('Login-Button nicht gefunden.');
+            }}
+        }});
+        // Fallback: Timeout, falls DOMContentLoaded nicht ausgelöst wird
+        setTimeout(() => {{
+            console.log('Fallback: Timeout ausgelöst.');
+            let user = document.querySelector('#username');
+            if (user) {{
+                console.log('Benutzername-Feld gefunden.');
+                user.value = '{username}';
+                console.log('Benutzername erfolgreich gesetzt.');
+            }} else {{
+                console.log('Benutzername-Feld nicht gefunden.');
+            }}
+
+            let pass = document.querySelector('#password');
+            if (pass) {{
+                pass.value = '{passwort}';
+                console.log('Passwort erfolgreich gesetzt.');
+            }} else {{
+                console.log('Passwort-Feld nicht gefunden.');
+            }}
+
+            let rmb = document.querySelector('input[id="rememberMe"]');
+            if (rmb) {{
+                rmb.focus();
+                rmb.click();
+            }}
+
+            let btn = document.querySelector('input[id="kc-login"]');
+            if (btn) {{
+                btn.focus();
+                btn.click();
+                console.log('Login-Button geklickt.');
+            }} else {{
+                console.log('Login-Button nicht gefunden.');
+            }}
+        }}, 5000);
+    }} catch (error) {{
+        console.error('Fehler im Autologin-Skript:', error);
+    }}
     """
 
 if css_style and logos_enable and logos_local:

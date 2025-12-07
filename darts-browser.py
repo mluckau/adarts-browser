@@ -1,7 +1,9 @@
 import sys
+import os
+import threading
 from pathlib import Path
 from PySide6.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QWidget, QMessageBox
-from PySide6.QtCore import QUrl, QFile, Qt, QTimer
+from PySide6.QtCore import QUrl, QFile, Qt, QTimer, QFileSystemWatcher
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWebEngineCore import (
     QWebEngineProfile,
@@ -9,9 +11,8 @@ from PySide6.QtWebEngineCore import (
     QWebEngineScript,
     QWebEngineSettings,
 )
-from watchdog.observers import Observer
-from watchdog.events import FileSystemEventHandler
 from config import AppConfig
+from http_server import ServeDirectoryWithHTTP
 
 # --- Constants & Global Config ---
 try:
@@ -39,11 +40,6 @@ except FileNotFoundError as e:
                          f"A script file was not found.\n{e}")
     sys.exit(1)
 
-# --- HTTP Server ---
-if config.use_custom_style and config.logos_enabled and config.logos_local:
-    from http_server import ServeDirectoryWithHTTP
-    ServeDirectoryWithHTTP(directory=str(APP_DIR))
-
 
 def run_script(view, script_code, name=""):
     """Helper to create and run a QWebEngineScript."""
@@ -69,14 +65,15 @@ class BrowserView(QWebEngineView):
 
         # Create profile and page without parents to manage their lifecycle manually
         self.profile = QWebEngineProfile(f"browser-{browser_id}")
-        
+
         # Ensure cache directory is relative to the app's directory
         cache_dir = config.cache_dir.lstrip('/\\')
         self.profile.setPersistentStoragePath(
             str(APP_DIR / cache_dir / f"browser{self.browser_id}"))
 
         self.page = QWebEnginePage(self.profile)
-        self.page.settings().setAttribute(QWebEngineSettings.WebAttribute.ShowScrollBars, False)
+        self.page.settings().setAttribute(
+            QWebEngineSettings.WebAttribute.ShowScrollBars, False)
         self.setPage(self.page)
 
         self.loadFinished.connect(self._on_load_finished)
@@ -153,10 +150,15 @@ class AutodartsBrowser(QMainWindow):
     def __init__(self):
         super().__init__()
         self._cleanup_started = False
+        self._is_restarting = False
         self.browsers = []
+        self.http_server = None
+
+        self.start_http_server()
         self.init_ui()
         self.load_pages()
         self.init_refresh_timer()
+        self.init_config_watcher()
 
     def init_ui(self):
         self.setWindowTitle("Autodarts Webbrowser")
@@ -183,6 +185,11 @@ class AutodartsBrowser(QMainWindow):
             self.browsers.append(browser2)
             self.layout.addWidget(browser2)
 
+    def start_http_server(self):
+        if config.use_custom_style and config.logos_enabled and config.logos_local:
+            self.http_server, _ = ServeDirectoryWithHTTP(
+                directory=str(APP_DIR))
+
     def load_pages(self):
         for browser in self.browsers:
             browser.load_target_url()
@@ -199,7 +206,18 @@ class AutodartsBrowser(QMainWindow):
             self.refresh_timer.timeout.connect(self.refresh_pages)
             interval_ms = interval_min * 60 * 1000
             self.refresh_timer.start(interval_ms)
-            print(f"[INFO] Auto-refresh enabled. Interval: {interval_min} minutes.")
+            print(
+                f"[INFO] Auto-refresh enabled. Interval: {interval_min} minutes.")
+
+    def init_config_watcher(self):
+        self.watcher = QFileSystemWatcher([str(CONFIG_PATH)])
+        self.watcher.fileChanged.connect(self.on_config_changed)
+
+    def on_config_changed(self):
+        print("[INFO] config.ini changed. Scheduling restart.")
+        self._is_restarting = True
+        self.watcher.removePath(str(CONFIG_PATH))
+        QApplication.instance().quit()
 
     def cleanup(self):
         if self._cleanup_started:
@@ -207,10 +225,18 @@ class AutodartsBrowser(QMainWindow):
         self._cleanup_started = True
 
         print("[INFO] Cleaning up resources...")
+        if hasattr(self, 'refresh_timer'):
+            self.refresh_timer.stop()
+
+        if self.http_server:
+            print("[INFO] Shutting down HTTP server...")
+            self.http_server.shutdown()
+            # The server thread is a daemon, but shutdown allows a clean exit.
+
         for browser in self.browsers:
             browser.close()
             browser.setPage(None)
-            
+
             # Manually schedule deletion in the correct order
             browser.page.deleteLater()
             browser.profile.deleteLater()
@@ -219,17 +245,6 @@ class AutodartsBrowser(QMainWindow):
         print("[INFO] Cleanup complete. Quitting application.")
         # Use a timer to allow deleteLater events to be processed
         QTimer.singleShot(200, QApplication.instance().quit)
-
-
-
-class ConfigFileEventHandler(FileSystemEventHandler):
-    def on_modified(self, event):
-        if event.src_path == str(CONFIG_PATH):
-            print("config.ini has been modified, restarting application...")
-            QApplication.instance().quit()
-            # A small delay to ensure cleanup before execv
-            QTimer.singleShot(250, lambda: os.execv(
-                sys.executable, ['python'] + sys.argv))
 
 
 def main():
@@ -242,7 +257,7 @@ def main():
         print(f"[WARN] Screen index {target_screen_index} is invalid. "
               f"Defaulting to primary screen 0.")
         target_screen_index = 0
-    
+
     target_screen = screens[target_screen_index]
     print(f"[INFO] Using screen {target_screen_index}: {target_screen.name()}")
 
@@ -252,17 +267,14 @@ def main():
 
     app.aboutToQuit.connect(main_window.cleanup)
 
-    observer = Observer()
-    event_handler = ConfigFileEventHandler()
-    observer.schedule(event_handler, path=APP_DIR, recursive=False)
-    observer.start()
+    exit_code = app.exec()
 
-    try:
-        sys.exit(app.exec())
-    finally:
-        if observer.is_alive():
-            observer.stop()
-            observer.join()
+    if main_window._is_restarting:
+        print("[INFO] Restarting application...")
+        os.execv(sys.executable, ['python'] + sys.argv)
+    else:
+        print("[INFO] Application has exited.")
+        sys.exit(exit_code)
 
 
 if __name__ == "__main__":

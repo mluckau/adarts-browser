@@ -57,6 +57,14 @@ class AppConfig:
     def autologin_password(self):
         return self._config.get("autologin", "passwort", fallback="")
 
+    @property
+    def refresh_interval_min(self):
+        return self._config.getint("main", "refresh_interval_min", fallback=0)
+
+    @property
+    def screen(self):
+        return self._config.getint("main", "screen", fallback=0)
+
 def get_config():
     working_path = Path(__file__).parent
     config_file = working_path / "config.ini"

@@ -156,6 +156,7 @@ class AutodartsBrowser(QMainWindow):
         self.browsers = []
         self.init_ui()
         self.load_pages()
+        self.init_refresh_timer()
 
     def init_ui(self):
         self.setWindowTitle("Autodarts Webbrowser")
@@ -185,6 +186,20 @@ class AutodartsBrowser(QMainWindow):
     def load_pages(self):
         for browser in self.browsers:
             browser.load_target_url()
+
+    def refresh_pages(self):
+        print("[INFO] Auto-refreshing all pages...")
+        for browser in self.browsers:
+            browser.reload()
+
+    def init_refresh_timer(self):
+        interval_min = config.refresh_interval_min
+        if interval_min > 0:
+            self.refresh_timer = QTimer(self)
+            self.refresh_timer.timeout.connect(self.refresh_pages)
+            interval_ms = interval_min * 60 * 1000
+            self.refresh_timer.start(interval_ms)
+            print(f"[INFO] Auto-refresh enabled. Interval: {interval_min} minutes.")
 
     def cleanup(self):
         if self._cleanup_started:
@@ -220,7 +235,19 @@ class ConfigFileEventHandler(FileSystemEventHandler):
 def main():
     app = QApplication(sys.argv)
 
+    # --- Screen Selection ---
+    screens = app.screens()
+    target_screen_index = config.screen
+    if target_screen_index < 0 or target_screen_index >= len(screens):
+        print(f"[WARN] Screen index {target_screen_index} is invalid. "
+              f"Defaulting to primary screen 0.")
+        target_screen_index = 0
+    
+    target_screen = screens[target_screen_index]
+    print(f"[INFO] Using screen {target_screen_index}: {target_screen.name()}")
+
     main_window = AutodartsBrowser()
+    main_window.setScreen(target_screen)
     main_window.showFullScreen()
 
     app.aboutToQuit.connect(main_window.cleanup)

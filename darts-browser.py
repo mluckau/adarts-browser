@@ -48,14 +48,14 @@ if config.use_custom_style and config.logos_enabled and config.logos_local:
 def run_script(view, script_code, name=""):
     """Helper to create and run a QWebEngineScript."""
     script = QWebEngineScript()
-    view.page().runJavaScript(script_code, QWebEngineScript.ApplicationWorld)
+    view.page.runJavaScript(script_code, QWebEngineScript.ApplicationWorld)
     if name:
         script.setName(name)
         script.setSourceCode(script_code)
         script.setInjectionPoint(QWebEngineScript.DocumentReady)
         script.setRunsOnSubFrames(True)
         script.setWorldId(QWebEngineScript.ApplicationWorld)
-        view.page().scripts().insert(script)
+        view.page.scripts().insert(script)
 
 
 class BrowserView(QWebEngineView):
@@ -67,16 +67,17 @@ class BrowserView(QWebEngineView):
         self.target_url = target_url
         self.login_attempts = 0
 
-        profile = QWebEngineProfile(f"browser-{browser_id}", self)
+        # Create profile and page without parents to manage their lifecycle manually
+        self.profile = QWebEngineProfile(f"browser-{browser_id}")
         
         # Ensure cache directory is relative to the app's directory
         cache_dir = config.cache_dir.lstrip('/\\')
-        profile.setPersistentStoragePath(
-            str(APP_DIR / cache_dir / f"browser{browser_id}"))
+        self.profile.setPersistentStoragePath(
+            str(APP_DIR / cache_dir / f"browser{self.browser_id}"))
 
-        page = QWebEnginePage(profile, self)
-        page.settings().setAttribute(QWebEngineSettings.WebAttribute.ShowScrollBars, False)
-        self.setPage(page)
+        self.page = QWebEnginePage(self.profile)
+        self.page.settings().setAttribute(QWebEngineSettings.WebAttribute.ShowScrollBars, False)
+        self.setPage(self.page)
 
         self.loadFinished.connect(self._on_load_finished)
 
@@ -151,6 +152,7 @@ class BrowserView(QWebEngineView):
 class AutodartsBrowser(QMainWindow):
     def __init__(self):
         super().__init__()
+        self._cleanup_started = False
         self.browsers = []
         self.init_ui()
         self.load_pages()
@@ -185,13 +187,24 @@ class AutodartsBrowser(QMainWindow):
             browser.load_target_url()
 
     def cleanup(self):
+        if self._cleanup_started:
+            return
+        self._cleanup_started = True
+
         print("[INFO] Cleaning up resources...")
         for browser in self.browsers:
-            browser.page().profile().deleteLater()
-            browser.page().deleteLater()
+            browser.close()
+            browser.setPage(None)
+            
+            # Manually schedule deletion in the correct order
+            browser.page.deleteLater()
+            browser.profile.deleteLater()
             browser.deleteLater()
-        print("[INFO] Cleanup complete.")
-        QTimer.singleShot(100, QApplication.quit)
+
+        print("[INFO] Cleanup complete. Quitting application.")
+        # Use a timer to allow deleteLater events to be processed
+        QTimer.singleShot(200, QApplication.instance().quit)
+
 
 
 class ConfigFileEventHandler(FileSystemEventHandler):

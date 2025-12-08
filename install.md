@@ -62,23 +62,19 @@ pip install -r requirements.txt
 cp config_example.ini config.ini
 ```
 
-config.ini bearbeiten(style activate = o)
+config.ini bearbeiten (optional, kann auch später über das Web-Interface erledigt werden)
 
 ```bash
 nano config.ini
 ```
 
-Das erste mal starten und alles so einstellen wie es sein soll
+Anwendung starten
 
 ``` bash
 python darts-browser.py 
 ```
 
-config.ini bearbeiten(style activate = 1)
-
-```bash
-nano config.ini
-```
+Nach dem Start ist die Konfiguration bequem über den Browser unter `http://<IP-Adresse>:5000` erreichbar. Dort kann auch das Styling aktiviert werden.
 
 ## Adarts-Browser Autostart
 

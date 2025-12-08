@@ -55,9 +55,24 @@ python darts-browser.py
 ```
 Die Anwendung startet im Vollbildmodus auf dem konfigurierten Bildschirm. Um sie zu beenden, können Sie im Terminal `Strg+C` drücken.
 
-## Konfiguration (`config.ini`)
+## Web-Konfiguration
 
-Die gesamte Anwendung wird über die `config.ini` gesteuert.
+Nach dem Start der Anwendung ist eine komfortable Konfigurationsoberfläche über den Webbrowser erreichbar.
+
+1.  Öffnen Sie auf einem anderen Gerät (Smartphone, PC) im gleichen Netzwerk einen Browser.
+2.  Geben Sie die IP-Adresse des Geräts, auf dem die Anwendung läuft, gefolgt von Port `5000` ein:
+    `http://<IP-Adresse>:5000` (z.B. `http://192.168.178.50:5000`)
+    Wenn Sie den Browser auf dem gleichen Gerät öffnen, können Sie auch `http://localhost:5000` verwenden.
+
+Über diese Oberfläche können Sie:
+- Alle Einstellungen bequem ändern und speichern.
+- Das CSS für das Styling direkt im Browser bearbeiten.
+- Die Anwendung neu starten.
+- Den Browser-Cache löschen (hilfreich bei Anzeigeproblemen).
+
+## Manuelle Konfiguration (`config.ini`)
+
+Alternativ zur Web-Oberfläche kann die Anwendung auch direkt über die `config.ini` gesteuert werden.
 
 ---
 

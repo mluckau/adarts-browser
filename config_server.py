@@ -10,6 +10,7 @@ from wtforms import Form, StringField, IntegerField, BooleanField, PasswordField
 APP_DIR = Path(__file__).parent
 CONFIG_PATH = APP_DIR / "config.ini"
 CSS_PATH = APP_DIR / "style.css"
+THEMES_DIR = APP_DIR / "themes" # Themes directory
 RESTART_TRIGGER_PATH = APP_DIR / ".restart_trigger"
 RELOAD_TRIGGER_PATH = APP_DIR / ".reload_trigger" # New reload trigger
 
@@ -97,6 +98,40 @@ def write_css(content):
     except Exception:
         return False
 
+# --- Theme Helper Functions ---
+def list_themes():
+    if not THEMES_DIR.exists():
+        return []
+    return sorted([f.stem for f in THEMES_DIR.glob('*.css')])
+
+def save_theme(name, content):
+    if not THEMES_DIR.exists():
+        THEMES_DIR.mkdir(exist_ok=True)
+    # Sanitize filename
+    safe_name = "".join([c for c in name if c.isalpha() or c.isdigit() or c in (' ', '-', '_')]).strip()
+    if not safe_name:
+        return False
+    try:
+        with open(THEMES_DIR / f"{safe_name}.css", 'w', encoding='utf-8') as f:
+            f.write(content)
+        return True
+    except Exception:
+        return False
+
+def load_theme(name):
+    try:
+        with open(THEMES_DIR / f"{name}.css", 'r', encoding='utf-8') as f:
+            return f.read()
+    except Exception:
+        return None
+
+def delete_theme(name):
+    try:
+        (THEMES_DIR / f"{name}.css").unlink()
+        return True
+    except Exception:
+        return False
+
 @app.route('/', methods=['GET', 'POST'])
 def index():
     config = read_config()
@@ -161,24 +196,47 @@ def index():
 @app.route('/css', methods=['GET', 'POST'])
 def edit_css():
     form = CSSForm(request.form)
+    
     if request.method == 'POST':
-        if write_css(form.css_content.data):
-            flash('CSS gespeichert! Änderungen werden sofort live auf dem Bildschirm aktualisiert.', 'success')
-            # Triggering a config change is often the easiest way to restart the app, 
-            # but modifying CSS doesn't automatically touch config.ini.
-            # However, the user might expect a restart.
-            # Since the watcher watches config.ini, maybe we should touch it? 
-            # Or just let the user know. 
-            # Actually, `darts-browser.py` reads css on page load. So a simple refresh might be enough?
-            # But the app doesn't refresh automatically on CSS change.
-            # Let's just save it.
-            return redirect(url_for('edit_css'))
-        else:
-            flash('Fehler beim Speichern der CSS-Datei.', 'danger')
+        action = request.form.get('action', 'save')
+        
+        if action == 'save':
+            if write_css(form.css_content.data):
+                flash('CSS gespeichert! Änderungen werden sofort live auf dem Bildschirm aktualisiert.', 'success')
+            else:
+                flash('Fehler beim Speichern der CSS-Datei.', 'danger')
+                
+        elif action == 'save_theme':
+            theme_name = request.form.get('theme_name')
+            if theme_name and save_theme(theme_name, form.css_content.data):
+                flash(f'Theme "{theme_name}" gespeichert.', 'success')
+            else:
+                flash('Fehler beim Speichern des Themes (ungültiger Name?).', 'danger')
+                
+        elif action == 'load_theme':
+            theme_name = request.form.get('selected_theme')
+            content = load_theme(theme_name)
+            if content is not None:
+                form.css_content.data = content
+                # Optionally save immediately to apply
+                write_css(content)
+                flash(f'Theme "{theme_name}" geladen und angewendet.', 'success')
+            else:
+                flash('Fehler beim Laden des Themes.', 'danger')
+                
+        elif action == 'delete_theme':
+            theme_name = request.form.get('selected_theme')
+            if delete_theme(theme_name):
+                flash(f'Theme "{theme_name}" gelöscht.', 'info')
+            else:
+                flash('Fehler beim Löschen des Themes.', 'danger')
+
+        return redirect(url_for('edit_css'))
 
     # GET request
     form.css_content.data = read_css()
-    return render_template('edit_css.html', form=form)
+    themes = list_themes()
+    return render_template('edit_css.html', form=form, themes=themes)
 
 
 @app.route('/restart', methods=['POST'])

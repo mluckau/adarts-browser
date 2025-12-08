@@ -9,6 +9,7 @@ Ein spezialisierter Kiosk-Browser zur Anzeige von [Autodarts](https://autodarts.
 - **Zoom-Faktor**: Skalierung der Anzeige anpassbar (z.B. für große Fernseher).
 - **Automatischer Login**: Kann sich automatisch in Autodarts einloggen, um private Boards anzuzeigen.
 - **Auto-Refresh**: Lädt die Seiten in einem konfigurierbaren Intervall neu, um die Verbindung aktiv zu halten.
+- **Offline-Erkennung**: Zeigt bei Verbindungsabbruch eine informative Warteseite anstatt eines Fehlers und verbindet sich automatisch neu.
 - **Benutzerdefiniertes Styling**: Injiziert eine benutzerdefinierte `style.css`-Datei, um das Aussehen der Autodarts-Seite anzupassen (z.B. Ausblenden unnötiger Elemente).
 - **Logo-Integration**: Blendet ein benutzerdefiniertes Logo über den Boards ein.
 - **Fernwartung**: Änderungen an der `config.ini` werden zur Laufzeit erkannt und führen zu einem automatischen Neustart der Anwendung.

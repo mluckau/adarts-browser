@@ -165,16 +165,16 @@ Einstellungen für den automatischen Login. Notwendig, wenn die Boards nicht öf
 
 ## Autostart (Beispiel für Linux)
 
-Um die Anwendung automatisch beim Systemstart auszuführen, können Sie einen Autostart-Eintrag erstellen.
+Um die Anwendung automatisch beim Systemstart auszuführen, liegt dem Repository bereits ein optimiertes Startskript `start.sh` bei.
 
-1.  **Start-Skript erstellen (z.B. `~/start_adarts.sh`):**
+1.  **Start-Skript prüfen:**
+    Die Datei `start.sh` im Hauptverzeichnis enthält bereits alle notwendigen Befehle (Wartezeit beim Boot, Display-Variable, Logging).
+    Sie können diese Datei direkt verwenden oder an einen beliebigen Ort kopieren (dann müssen Sie ggf. den Pfad im Skript anpassen, falls die automatische Erkennung nicht greift).
+
+    Stellen Sie sicher, dass sie ausführbar ist (sollte bereits der Fall sein):
     ```bash
-    #!/bin/bash
-    cd /pfad/zum/adarts-browser/
-    source .venv/bin/activate
-    python darts-browser.py
+    chmod +x start.sh
     ```
-    Machen Sie das Skript ausführbar: `chmod +x ~/start_adarts.sh`.
 
 2.  **.desktop-Datei anlegen (in `~/.config/autostart/`):**
     Erstellen Sie eine Datei namens `autodarts-browser.desktop`:
@@ -182,7 +182,15 @@ Um die Anwendung automatisch beim Systemstart auszuführen, können Sie einen Au
     [Desktop Entry]
     Type=Application
     Name=Autodarts-Browser
-    Exec=/pfad/zu/ihrem/start_adarts.sh
+    # Pfad bitte anpassen!
+    Exec=/home/pi/adarts-browser/start.sh
     StartupNotify=false
     Terminal=false
     ```
+    *Ersetzen Sie `/home/pi/adarts-browser/start.sh` durch den tatsächlichen absoluten Pfad zu Ihrer `start.sh`.*
+
+**Tipp zur Fehlersuche:**
+Das Skript schreibt Log-Ausgaben nach `/tmp/adarts-browser.log`. Sollte die Anwendung nicht starten, prüfen Sie diese Datei:
+```bash
+cat /tmp/adarts-browser.log
+```

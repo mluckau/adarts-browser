@@ -78,29 +78,24 @@ Nach dem Start ist die Konfiguration bequem über den Browser unter `http://<IP-
 
 ## Adarts-Browser Autostart
 
-### Startscript anlegen
+### Startscript
 
-``` bash
-mkdir scripts
-nano ~/scripts/start_dartsbrowser.sh
+Im Repository liegt bereits ein optimiertes Startskript namens `start.sh`. Dieses kümmert sich um eine kurze Wartezeit beim Booten, setzt die Display-Variable und schreibt Logs.
+
+Stellen Sie sicher, dass es ausführbar ist:
+```bash
+chmod +x start.sh
 ```
 
-``` bash
-#!/bin/bash
-cd ~/adarts-browser/
-source .venv/bin/activate
-python darts-browser.py
-```
-
-``` bash
-chmod +x start_dartsbrowser.sh
-```
+(Optional) Falls Sie das Skript an einen anderen Ort verschieben, passen Sie ggf. die Pfade darin an. Die Standardversion ermittelt den Ort automatisch.
 
 ### Autostart Desktop Entry anlegen
 
 ``` bash
 nano ~/.config/autostart/autodarts-browser.desktop
 ```
+
+Passen Sie den Pfad bei `Exec` an Ihr Installationsverzeichnis an!
 
 ``` bash
 [Desktop Entry]
@@ -109,10 +104,18 @@ Version=0.9.4
 Type=Application
 Name=Autodarts-Browser
 Comment=Der Autodarts-Browser
-Exec=/home/[USER]/scripts/start_dartsbrowser.sh
+# Pfad ANPASSEN:
+Exec=/home/michael/Coding/adarts-browser/start.sh
 StartupNotify=false
 Terminal=false
 Hidden=false
+```
+
+### Fehlerbehebung
+
+Startet die Anwendung nicht, prüfen Sie das Logfile:
+```bash
+cat /tmp/adarts-browser.log
 ```
 
 ## Mauszeiger ausblenden

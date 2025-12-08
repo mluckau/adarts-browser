@@ -11,6 +11,7 @@ APP_DIR = Path(__file__).parent
 CONFIG_PATH = APP_DIR / "config.ini"
 CSS_PATH = APP_DIR / "style.css"
 RESTART_TRIGGER_PATH = APP_DIR / ".restart_trigger"
+RELOAD_TRIGGER_PATH = APP_DIR / ".reload_trigger" # New reload trigger
 
 app = Flask(__name__)
 app.secret_key = 'adarts-browser-secret-key'  # Needed for flash messages
@@ -59,6 +60,19 @@ def delayed_restart_trigger():
         except OSError:
             pass
     threading.Thread(target=run, daemon=True).start()
+
+def delayed_reload_trigger():
+    """Touches the reload trigger file after a short delay."""
+    def run():
+        time.sleep(0.5)  # Shorter delay for reload
+        try:
+            if not RELOAD_TRIGGER_PATH.exists():
+                RELOAD_TRIGGER_PATH.touch()
+            os.utime(RELOAD_TRIGGER_PATH, None)
+        except OSError:
+            pass
+    threading.Thread(target=run, daemon=True).start()
+
 
 def write_config(config):
     with open(CONFIG_PATH, 'w') as configfile:
@@ -171,6 +185,12 @@ def edit_css():
 def restart_app():
     delayed_restart_trigger()
     flash('Neustart ausgelöst! Die Anwendung startet in wenigen Sekunden neu.', 'info')
+    return redirect(url_for('index'))
+
+@app.route('/reload_pages', methods=['POST'])
+def reload_pages():
+    delayed_reload_trigger()
+    flash('Seiten-Neuladen ausgelöst! Die Browserseiten werden aktualisiert.', 'info')
     return redirect(url_for('index'))
 
 

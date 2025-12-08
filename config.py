@@ -63,7 +63,10 @@ class AppConfig:
 
     @property
     def zoom_factor(self):
-        return self._config.getfloat("main", "zoom_factor", fallback=1.0)
+        try:
+            return self._config.getfloat("main", "zoom_factor", fallback=1.0)
+        except ValueError:
+            return 1.0
 
     @property
     def screen(self):

@@ -9,6 +9,7 @@
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h1 class="mb-0">Konfiguration</h1>
             <div class="btn-group">
+                <button type="button" class="btn btn-primary" onclick="document.getElementById('reload-form').submit();">Seiten neu laden</button>
                 <button type="button" class="btn btn-warning" onclick="if(confirm('Cache wirklich löschen? Sie müssen sich danach neu einloggen.')) document.getElementById('clearcache-form').submit();">Cache löschen</button>
                 <button type="button" class="btn btn-danger" onclick="document.getElementById('restart-form').submit();">Neustart erzwingen</button>
             </div>
@@ -16,6 +17,7 @@
 
         <form id="restart-form" action="{{ url_for('restart_app') }}" method="POST" style="display: none;"></form>
         <form id="clearcache-form" action="{{ url_for('clear_cache') }}" method="POST" style="display: none;"></form>
+        <form id="reload-form" action="{{ url_for('reload_pages') }}" method="POST" style="display: none;"></form>
         
         <form method="POST">
             

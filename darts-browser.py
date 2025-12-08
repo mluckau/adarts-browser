@@ -22,6 +22,8 @@ from config_server import start_server
 APP_DIR = Path(__file__).parent
 SCRIPTS_DIR = APP_DIR / "scripts"
 CONFIG_PATH = APP_DIR / "config.ini"
+RESTART_TRIGGER_PATH = APP_DIR / ".restart_trigger" # Restart trigger path
+RELOAD_TRIGGER_PATH = APP_DIR / ".reload_trigger" # Reload trigger path
 config = AppConfig(CONFIG_PATH)
 
 # --- Script Templates ---
@@ -217,18 +219,46 @@ class AutodartsBrowser(QMainWindow):
                 f"[INFO] Auto-refresh enabled. Interval: {interval_min} minutes.")
 
     def init_config_watcher(self):
-        self.watcher = QFileSystemWatcher([str(CONFIG_PATH)])
-        # Watch restart trigger file as well
-        restart_trigger = APP_DIR / ".restart_trigger"
-        if not restart_trigger.exists():
-            restart_trigger.touch()
-        self.watcher.addPath(str(restart_trigger))
-        self.watcher.fileChanged.connect(self.on_config_changed)
+        self.watcher = QFileSystemWatcher()
+        
+        # Watch config file
+        self.watcher.addPath(str(CONFIG_PATH))
+        
+        # Watch restart trigger file
+        if not RESTART_TRIGGER_PATH.exists():
+            RESTART_TRIGGER_PATH.touch()
+        self.watcher.addPath(str(RESTART_TRIGGER_PATH))
+        
+        # Watch reload trigger file
+        if not RELOAD_TRIGGER_PATH.exists():
+            RELOAD_TRIGGER_PATH.touch()
+        self.watcher.addPath(str(RELOAD_TRIGGER_PATH))
+        
+        # Connect signal to a single handler
+        self.watcher.fileChanged.connect(self._on_file_changed)
 
-    def on_config_changed(self):
-        print("[INFO] config.ini changed. Scheduling restart.")
+
+    def _on_file_changed(self, path):
+        changed_path = str(Path(path).absolute())
+        print(f"[DEBUG] File changed: {changed_path}")
+        
+        if str(CONFIG_PATH.absolute()) == changed_path:
+            print("[INFO] config.ini changed. Scheduling restart.")
+            self._trigger_restart()
+            
+        elif str(RESTART_TRIGGER_PATH.absolute()) == changed_path:
+            print("[INFO] Restart trigger file touched. Scheduling restart.")
+            self._trigger_restart()
+            
+        elif str(RELOAD_TRIGGER_PATH.absolute()) == changed_path:
+            print("[INFO] Reload trigger detected. Reloading all browser pages.")
+            self.refresh_pages()
+
+    def _trigger_restart(self):
         self._is_restarting = True
-        self.watcher.removePath(str(CONFIG_PATH))
+        # Stop watching to prevent multiple triggers
+        if self.watcher:
+            self.watcher.removePaths(self.watcher.files())
         QApplication.instance().quit()
 
     def cleanup(self):
@@ -291,45 +321,54 @@ def check_and_clear_cache():
 
 
 def main():
-    # Check for cache clear request
-    check_and_clear_cache()
+    try:
+        # Check for cache clear request
+        check_and_clear_cache()
 
-    # Start the configuration server
-    print("Starting configuration server on http://0.0.0.0:5000")
-    start_server()
+        # Start the configuration server
+        print("Starting configuration server on http://0.0.0.0:5000")
+        start_server()
 
-    app = QApplication(sys.argv)
+        app = QApplication(sys.argv)
 
-    # --- Screen Selection ---
-    screens = app.screens()
-    target_screen_index = config.screen
-    if target_screen_index < 0 or target_screen_index >= len(screens):
-        print(f"[WARN] Screen index {target_screen_index} is invalid. "
-              f"Defaulting to primary screen 0.")
-        target_screen_index = 0
+        # --- Screen Selection ---
+        screens = app.screens()
+        target_screen_index = config.screen
+        if target_screen_index < 0 or target_screen_index >= len(screens):
+            print(f"[WARN] Screen index {target_screen_index} is invalid. "
+                  f"Defaulting to primary screen 0.")
+            target_screen_index = 0
 
-    target_screen = screens[target_screen_index]
-    print(f"[INFO] Using screen {target_screen_index}: {target_screen.name()}")
+        target_screen = screens[target_screen_index]
+        print(f"[INFO] Using screen {target_screen_index}: {target_screen.name()}")
 
-    main_window = AutodartsBrowser()
-    main_window.setScreen(target_screen)
-    main_window.showFullScreen()
+        main_window = AutodartsBrowser()
+        main_window.setScreen(target_screen)
+        main_window.showFullScreen()
 
-    app.aboutToQuit.connect(main_window.cleanup)
+        app.aboutToQuit.connect(main_window.cleanup)
 
-    exit_code = app.exec()
+        exit_code = app.exec()
 
-    if main_window._is_restarting:
-        print("[INFO] Restarting application...")
-        # Give some time for resources (like port 5000) to be released
-        time.sleep(2)
-        # Clean restart using subprocess to release all file descriptors (sockets)
-        subprocess.Popen([sys.executable] + sys.argv)
-        sys.exit(0)
-    else:
-        print("[INFO] Application has exited.")
-        sys.exit(exit_code)
+        if main_window._is_restarting:
+            print("[INFO] Restarting application...")
+            # Give some time for resources (like port 5000) to be released
+            time.sleep(2)
+            # Clean restart using subprocess to release all file descriptors (sockets)
+            subprocess.Popen([sys.executable] + sys.argv)
+            sys.exit(0)
+        else:
+            print("[INFO] Application has exited.")
+            sys.exit(exit_code)
+            
+    except Exception as e:
+        import traceback
+        with open("crash.log", "w") as f:
+            f.write(traceback.format_exc())
+        print(f"[CRITICAL] Application crashed: {e}")
+        sys.exit(1)
 
 
 if __name__ == "__main__":
     main()
+

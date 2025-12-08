@@ -1,10 +1,22 @@
 // This script runs inside the QWebEngineView for each browser instance.
 
 (function() {
-    const OFFLINE_OVERLAY_ID = 'autodarts-offline-overlay';
-    let isOffline = false;
-    let overlayElement = null;
-    let offlinePageContent = `<!-- OFFLINE_PAGE_PLACEHOLDER -->`; // Will be replaced by Python
+    var OFFLINE_OVERLAY_ID = 'autodarts-offline-overlay';
+    var isOffline = false;
+    var overlayElement = null;
+    
+    // Decoded content from Python (Base64)
+    var offlinePageContent = "";
+    try {
+        // Decode Base64 to UTF-8 string
+        var b64 = "{offline_html_b64}".trim(); // Remove potential whitespace
+        // Standard trick to decode UTF-8 from Base64 in browser
+        offlinePageContent = decodeURIComponent(Array.prototype.map.call(window.atob(b64), function(c) {
+            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+        }).join(''));
+    } catch(e) {
+        console.error("[Autodarts Browser] Failed to decode offline HTML: " + e);
+    }
     
     function showOfflineOverlay() {
         if (!isOffline) {
@@ -13,21 +25,21 @@
             if (!overlayElement) {
                 overlayElement = document.createElement('div');
                 overlayElement.id = OFFLINE_OVERLAY_ID;
-                Object.assign(overlayElement.style, {
-                    position: 'fixed',
-                    top: '0',
-                    left: '0',
-                    width: '100vw',
-                    height: '100vh',
-                    backgroundColor: 'rgba(0, 0, 0, 0.95)', // Darken background
-                    zIndex: '99999', // Ensure it's on top
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    color: 'white',
-                    fontFamily: 'sans-serif',
-                    textAlign: 'center'
-                });
+                
+                overlayElement.style.position = 'fixed';
+                overlayElement.style.top = '0';
+                overlayElement.style.left = '0';
+                overlayElement.style.width = '100vw';
+                overlayElement.style.height = '100vh';
+                overlayElement.style.backgroundColor = 'rgba(0, 0, 0, 0.95)';
+                overlayElement.style.zIndex = '99999';
+                overlayElement.style.display = 'flex';
+                overlayElement.style.justifyContent = 'center';
+                overlayElement.style.alignItems = 'center';
+                overlayElement.style.color = 'white';
+                overlayElement.style.fontFamily = 'sans-serif';
+                overlayElement.style.textAlign = 'center';
+
                 // Inject the content of the offline page
                 overlayElement.innerHTML = offlinePageContent;
                 document.body.appendChild(overlayElement);
@@ -44,33 +56,32 @@
                 overlayElement.style.display = 'none';
             }
             // Optional: Force a reload of the original page to ensure full recovery
-            // window.location.reload(true); // force a hard reload
+            // window.location.reload(true); 
         }
     }
 
     function checkConnectivity() {
-        // Try to fetch a small, reliable resource or the main Autodarts page itself
-        fetch('https://play.autodarts.io/version', { mode: 'no-cors', cache: 'no-store' })
-            .then(() => {
-                // If fetch succeeds (even with CORS error for no-cors), assume online
-                if (isOffline) {
-                    console.log('[Autodarts Browser] Re-connected to Autodarts.io.');
-                    hideOfflineOverlay();
-                    // Give it a moment, then reload the page to ensure fresh content
-                    setTimeout(() => window.location.reload(true), 1000); 
-                }
-            })
-            .catch(() => {
-                // If fetch fails, assume offline
-                console.warn('[Autodarts Browser] Failed to reach Autodarts.io.');
-                showOfflineOverlay();
-            })
-            .finally(() => {
-                // Schedule next check
-                setTimeout(checkConnectivity, 5000); // Check every 5 seconds
-            });
+        try {
+            fetch('https://play.autodarts.io/version', { mode: 'no-cors', cache: 'no-store' })
+                .then(function() {
+                    if (isOffline) {
+                        console.log('[Autodarts Browser] Re-connected to Autodarts.io.');
+                        hideOfflineOverlay();
+                        setTimeout(function() { window.location.reload(true); }, 1000); 
+                    }
+                })
+                .catch(function() {
+                    console.warn('[Autodarts Browser] Failed to reach Autodarts.io.');
+                    showOfflineOverlay();
+                })
+                .finally(function() {
+                    setTimeout(checkConnectivity, 5000);
+                });
+        } catch (e) {
+            console.error("[Autodarts Browser] Connectivity check error: " + e);
+            setTimeout(checkConnectivity, 10000);
+        }
     }
 
-    // Start checking connectivity once the script is injected
-    setTimeout(checkConnectivity, 2000); // Initial check after 2 seconds
+    setTimeout(checkConnectivity, 2000);
 })();

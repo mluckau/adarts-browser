@@ -163,7 +163,7 @@ def edit_css():
     form = CSSForm(request.form)
     if request.method == 'POST':
         if write_css(form.css_content.data):
-            flash('CSS gespeichert! Änderungen werden nach Neustart wirksam (oder evtl. sofort beim nächsten Seitenladen).', 'success')
+            flash('CSS gespeichert! Änderungen werden sofort live auf dem Bildschirm aktualisiert.', 'success')
             # Triggering a config change is often the easiest way to restart the app, 
             # but modifying CSS doesn't automatically touch config.ini.
             # However, the user might expect a restart.

@@ -7,21 +7,25 @@
     display: none !important;
 }
 
-.css-58dqdt {
-    display: none !important;
-}
-
-/* Titelzeile bei ausbullen */
-.css-k008qs {
-    display: none !important;
-}
-
 .css-hbcrf5 {
     max-width: 100% !important;
 }
 
 .css-hbcrf5 {
     padding: 6px !important;
+}
+
+.css-58dqdt {
+    display: none !important;
+}
+
+.css-37hv00 {
+    flex-flow: nowrap !important;
+}
+
+/* Titelzeile bei ausbullen */
+.css-k008qs {
+    display: none !important;
 }
 
 .css-dlfaby {
@@ -44,9 +48,6 @@
     height: 100vh !important;
 }
 
-.css-37hv00 {
-    flex-flow: nowrap !important;
-}
 
 /* chatanzeige */
 .css-1hcjfjd {
@@ -64,6 +65,7 @@ body {
 
     /* https: //www.svgbackgrounds.com/tools/svg-to-css/ */
 }
+
 
 .css-1dklj6k {
     font-size: var(--chakra-fontSizes-5xl) !important;

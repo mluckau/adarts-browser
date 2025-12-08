@@ -20,25 +20,28 @@
         <form method="POST">
             
             <!-- Main Settings -->
-            <div class="card">
-                <div class="section-header">Allgemeine Einstellungen</div>
-                <div class="card-body">
-                    <div class="mb-3">
-                        <label for="browsers" class="form-label">{{ form.browsers.label }}</label>
-                        {{ form.browsers(class="form-control", type="number", min=1, max=2) }}
-                    </div>
-                    <div class="mb-3">
-                        <label for="refresh_interval_min" class="form-label">{{ form.refresh_interval_min.label }}</label>
-                        {{ form.refresh_interval_min(class="form-control", type="number") }}
-                    </div>
-                    <div class="mb-3">
-                        <label for="screen" class="form-label">{{ form.screen.label }}</label>
-                        {{ form.screen(class="form-control", type="number") }}
-                    </div>
-                </div>
-            </div>
-
-            <!-- Boards -->
+                                <div class="card">
+                                    <div class="section-header">Allgemeine Einstellungen</div>
+                                    <div class="card-body">
+                                        <div class="mb-3">
+                                            <label for="browsers" class="form-label">{{ form.browsers.label }}</label>
+                                            {{ form.browsers(class="form-control", type="number", min=1, max=2) }}
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="refresh_interval_min" class="form-label">{{ form.refresh_interval_min.label }}</label>
+                                            {{ form.refresh_interval_min(class="form-control", type="number") }}
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="zoom_factor" class="form-label">{{ form.zoom_factor.label }}</label>
+                                            {{ form.zoom_factor(class="form-control", type="number", step="0.1", min="0.5", max="3.0") }}
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="screen" class="form-label">{{ form.screen.label }}</label>
+                                            {{ form.screen(class="form-control", type="number") }}
+                                        </div>
+                                    </div>
+                                </div>
+                        <!-- Boards -->
             <div class="card">
                 <div class="section-header">Boards</div>
                 <div class="card-body">

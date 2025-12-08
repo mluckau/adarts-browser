@@ -62,6 +62,10 @@ class AppConfig:
         return self._config.getint("main", "refresh_interval_min", fallback=0)
 
     @property
+    def zoom_factor(self):
+        return self._config.getfloat("main", "zoom_factor", fallback=1.0)
+
+    @property
     def screen(self):
         return self._config.getint("main", "screen", fallback=0)
 

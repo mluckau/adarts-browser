@@ -85,6 +85,9 @@ class BrowserView(QWebEngineView):
             print(
                 f"[Browser {self.browser_id}] Page failed to load: {current_url}")
             return
+        
+        # Apply Zoom Factor
+        self.setZoomFactor(config.zoom_factor)
 
         if is_target_page:
             print(

@@ -4,7 +4,7 @@ import os
 import time
 from pathlib import Path
 from flask import Flask, render_template, request, flash, redirect, url_for
-from wtforms import Form, StringField, IntegerField, BooleanField, PasswordField, TextAreaField, validators
+from wtforms import Form, StringField, IntegerField, BooleanField, PasswordField, TextAreaField, FloatField, validators
 
 # Configuration Paths
 APP_DIR = Path(__file__).parent
@@ -19,6 +19,7 @@ class ConfigForm(Form):
     # Main Section
     browsers = IntegerField('Anzahl Browser (1 oder 2)', [validators.NumberRange(min=1, max=2)])
     refresh_interval_min = IntegerField('Auto-Refresh Intervall (Minuten, 0 = aus)')
+    zoom_factor = FloatField('Zoom-Faktor (z.B. 1.0 = 100%, 1.2 = 120%)')
     screen = IntegerField('Bildschirm Index (0 = Hauptbildschirm)')
     
     # Boards Section
@@ -92,6 +93,7 @@ def index():
         if not config.has_section('main'): config.add_section('main')
         config.set('main', 'browsers', str(form.browsers.data))
         config.set('main', 'refresh_interval_min', str(form.refresh_interval_min.data))
+        config.set('main', 'zoom_factor', str(form.zoom_factor.data))
         config.set('main', 'screen', str(form.screen.data))
 
         if not config.has_section('boards'): config.add_section('boards')
@@ -120,6 +122,7 @@ def index():
     try:
         form.browsers.data = config.getint('main', 'browsers', fallback=1)
         form.refresh_interval_min.data = config.getint('main', 'refresh_interval_min', fallback=0)
+        form.zoom_factor.data = config.getfloat('main', 'zoom_factor', fallback=1.0)
         form.screen.data = config.getint('main', 'screen', fallback=0)
         
         form.board1_id.data = config.get('boards', 'board1_id', fallback='')

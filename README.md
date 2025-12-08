@@ -11,6 +11,7 @@ Ein spezialisierter Kiosk-Browser zur Anzeige von [Autodarts](https://autodarts.
 - **Benutzerdefiniertes Styling**: Injiziert eine benutzerdefinierte `style.css`-Datei, um das Aussehen der Autodarts-Seite anzupassen (z.B. Ausblenden unnötiger Elemente).
 - **Logo-Integration**: Blendet ein benutzerdefiniertes Logo über den Boards ein.
 - **Fernwartung**: Änderungen an der `config.ini` werden zur Laufzeit erkannt und führen zu einem automatischen Neustart der Anwendung.
+- **Web-Konfiguration**: Ermöglicht die einfache Verwaltung aller Einstellungen über eine Weboberfläche.
 - **Headless-Betrieb**: Für Systeme ohne direkt angeschlossene Eingabegeräte konzipiert.
 
 ## Installation
@@ -40,12 +41,12 @@ Installieren Sie die notwendigen Python-Pakete:
 pip install -r requirements.txt
 ```
 
-### 5. Konfiguration erstellen
-Kopieren Sie die Beispielkonfiguration, um Ihre eigene zu erstellen:
+### 5. Konfiguration erstellen (Optional)
+Wenn Sie die Konfiguration manuell über die `config.ini` vornehmen möchten, kopieren Sie die Beispielkonfiguration:
 ```bash
 cp config_example.ini config.ini
 ```
-Passen Sie anschließend die `config.ini` mit einem Texteditor an Ihre Bedürfnisse an (siehe Abschnitt "Konfiguration" unten).
+Alternativ können Sie die Konfiguration auch bequem über das Web-Interface vornehmen, sobald die Anwendung gestartet ist.
 
 ## Anwendung starten
 

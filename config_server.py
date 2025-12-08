@@ -186,6 +186,26 @@ def clear_cache():
     return redirect(url_for('index'))
 
 
+@app.route('/logs')
+def view_logs():
+    log_path = Path('/tmp/adarts-browser.log')
+    logs = []
+    if log_path.exists():
+        try:
+            # Read last 200 lines efficiently
+            with open(log_path, 'r', encoding='utf-8', errors='replace') as f:
+                # deque with maxlen is an efficient way to keep only the last N lines
+                from collections import deque
+                logs = list(deque(f, 200))
+        except Exception as e:
+            logs = [f"Fehler beim Lesen der Logdatei: {e}"]
+    else:
+        logs = ["Keine Logdatei gefunden (/tmp/adarts-browser.log).", 
+                "Dies ist normal, wenn die Anwendung nicht über das Startskript gestartet wurde."]
+    
+    return render_template('logs.html', logs=logs)
+
+
 def start_server(host='0.0.0.0', port=5000):
     """Starts the Flask server in a daemon thread with retry logic."""
     def run():

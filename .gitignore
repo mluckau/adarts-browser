@@ -16,3 +16,4 @@ logo.svg
 configs
 config_example.ini
 .gitignore
+.restart_trigger

@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Autodarts Browser Konfiguration</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #f8f9fa; padding-top: 20px; }
+        .card { margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .section-header { background-color: #e9ecef; padding: 10px 15px; font-weight: bold; border-bottom: 1px solid #dee2e6; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h1 class="mb-0">Autodarts Browser Konfiguration</h1>
+                    <div class="btn-group">
+                        <a href="{{ url_for('index') }}" class="btn btn-outline-secondary">Neu laden</a>
+                        <button type="button" class="btn btn-warning" onclick="if(confirm('Cache wirklich löschen? Sie müssen sich danach neu einloggen.')) document.getElementById('clearcache-form').submit();">Cache löschen</button>
+                        <button type="button" class="btn btn-danger" onclick="document.getElementById('restart-form').submit();">Neustart erzwingen</button>
+                    </div>
+                </div>
+
+                <form id="restart-form" action="{{ url_for('restart_app') }}" method="POST" style="display: none;"></form>
+                <form id="clearcache-form" action="{{ url_for('clear_cache') }}" method="POST" style="display: none;"></form>
+                
+                {% with messages = get_flashed_messages(with_categories=true) %}
+                  {% if messages %}
+                    {% for category, message in messages %}
+                      <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                      </div>
+                    {% endfor %}
+                  {% endif %}
+                {% endwith %}
+
+                <form method="POST">
+                    
+                    <!-- Main Settings -->
+                    <div class="card">
+                        <div class="section-header">Allgemeine Einstellungen</div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="browsers" class="form-label">{{ form.browsers.label }}</label>
+                                {{ form.browsers(class="form-control", type="number", min=1, max=2) }}
+                            </div>
+                            <div class="mb-3">
+                                <label for="refresh_interval_min" class="form-label">{{ form.refresh_interval_min.label }}</label>
+                                {{ form.refresh_interval_min(class="form-control", type="number") }}
+                            </div>
+                            <div class="mb-3">
+                                <label for="screen" class="form-label">{{ form.screen.label }}</label>
+                                {{ form.screen(class="form-control", type="number") }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Boards -->
+                    <div class="card">
+                        <div class="section-header">Boards</div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="board1_id" class="form-label">{{ form.board1_id.label }}</label>
+                                {{ form.board1_id(class="form-control") }}
+                                <div class="form-text">Die UUID des ersten Boards.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="board2_id" class="form-label">{{ form.board2_id.label }}</label>
+                                {{ form.board2_id(class="form-control") }}
+                                <div class="form-text">Nur benötigt wenn 2 Browser aktiv sind.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Styling & Logo -->
+                    <div class="card">
+                        <div class="section-header">Styling & Logo</div>
+                        <div class="card-body">
+                            <div class="form-check mb-3">
+                                {{ form.style_activate(class="form-check-input") }}
+                                <label class="form-check-label" for="style_activate">{{ form.style_activate.label }}</label>
+                            </div>
+                            <div class="mb-3">
+                                <a href="{{ url_for('edit_css') }}" class="btn btn-outline-secondary btn-sm">Style.css bearbeiten</a>
+                            </div>
+                            <hr>
+                            <div class="form-check mb-3">
+                                {{ form.logos_enable(class="form-check-input") }}
+                                <label class="form-check-label" for="logos_enable">{{ form.logos_enable.label }}</label>
+                            </div>
+                            <div class="form-check mb-3">
+                                {{ form.logos_local(class="form-check-input") }}
+                                <label class="form-check-label" for="logos_local">{{ form.logos_local.label }}</label>
+                            </div>
+                            <div class="mb-3">
+                                <label for="logos_logo" class="form-label">{{ form.logos_logo.label }}</label>
+                                {{ form.logos_logo(class="form-control") }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Auto Login -->
+                    <div class="card">
+                        <div class="section-header">Auto Login</div>
+                        <div class="card-body">
+                            <div class="form-check mb-3">
+                                {{ form.autologin_enable(class="form-check-input") }}
+                                <label class="form-check-label" for="autologin_enable">{{ form.autologin_enable.label }}</label>
+                            </div>
+                            <div class="mb-3">
+                                <label for="autologin_username" class="form-label">{{ form.autologin_username.label }}</label>
+                                {{ form.autologin_username(class="form-control") }}
+                            </div>
+                            <div class="mb-3">
+                                <label for="autologin_password" class="form-label">{{ form.autologin_password.label }}</label>
+                                <div class="input-group">
+                                    <input class="form-control" id="autologin_password" name="autologin_password" type="password" value="{{ form.autologin_password.data if form.autologin_password.data else '' }}">
+                                    <button class="btn btn-outline-secondary" type="button" id="togglePassword">
+                                        👁️
+                                    </button>
+                                </div>
+                            </div>
+                            <script>
+                                document.getElementById('togglePassword').addEventListener('click', function (e) {
+                                    const password = document.getElementById('autologin_password');
+                                    const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                                    password.setAttribute('type', type);
+                                    this.innerText = type === 'password' ? '👁️' : '🙈';
+                                });
+                            </script>
+                            <div class="mb-3">
+                                <label for="autologin_versuche" class="form-label">{{ form.autologin_versuche.label }}</label>
+                                {{ form.autologin_versuche(class="form-control", type="number") }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-grid gap-2 mb-5">
+                        <button type="submit" class="btn btn-primary btn-lg">Speichern & Neustarten</button>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+  </body>
+</html>

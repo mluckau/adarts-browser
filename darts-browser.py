@@ -1,6 +1,9 @@
 import sys
 import os
+import shutil
 import threading
+import time
+import subprocess
 from pathlib import Path
 from PySide6.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QWidget, QMessageBox
 from PySide6.QtCore import QUrl, QFile, Qt, QTimer, QFileSystemWatcher
@@ -13,6 +16,7 @@ from PySide6.QtWebEngineCore import (
 )
 from config import AppConfig
 from http_server import ServeDirectoryWithHTTP
+from config_server import start_server
 
 # --- Constants & Global Config ---
 try:
@@ -44,14 +48,11 @@ except FileNotFoundError as e:
 def run_script(view, script_code, name=""):
     """Helper to create and run a QWebEngineScript."""
     script = QWebEngineScript()
-    view.page.runJavaScript(script_code, QWebEngineScript.ApplicationWorld)
-    if name:
-        script.setName(name)
-        script.setSourceCode(script_code)
-        script.setInjectionPoint(QWebEngineScript.DocumentReady)
-        script.setRunsOnSubFrames(True)
-        script.setWorldId(QWebEngineScript.ApplicationWorld)
-        view.page.scripts().insert(script)
+    script.setSourceCode(script_code)
+    script.setInjectionPoint(QWebEngineScript.DocumentReady)
+    script.setRunsOnSubFrames(True)
+    script.setWorldId(QWebEngineScript.ApplicationWorld)
+    view.page.scripts().insert(script)
 
 
 class BrowserView(QWebEngineView):
@@ -94,32 +95,35 @@ class BrowserView(QWebEngineView):
         if is_target_page:
             print(
                 f"[Browser {self.browser_id}] Successfully loaded target URL.")
+            self.login_attempts = 0  # Reset login attempts on success
+
             if config.use_custom_style:
                 self._inject_css()
             if config.logos_enabled:
                 self._insert_logo()
+
+            # Always try to inject autologin script, in case login form is on the target page
+            if config.autologin_enabled:
+                self._inject_autologin()
+
         else:
             print(
                 f"[Browser {self.browser_id}] Redirected to {current_url}. Attempting login...")
-            self._try_login()
+            if config.autologin_enabled:
+                self._inject_autologin()
+
+    def _inject_autologin(self):
+        print(f"[Browser {self.browser_id}] Injecting autologin script...")
+        script_code = LOGIN_SCRIPT_TPL.replace(
+            '{username}', config.autologin_username
+        ).replace(
+            '{password}', config.autologin_password
+        )
+        run_script(self, script_code, name="autologin")
 
     def _try_login(self):
-        if not config.autologin_enabled:
-            print(f"[Browser {self.browser_id}] Autologin disabled.")
-            return
-
-        if self.login_attempts < config.autologin_max_attempts:
-            self.login_attempts += 1
-            print(
-                f"[Browser {self.browser_id}] Attempting login {self.login_attempts}/{config.autologin_max_attempts}")
-            script_code = LOGIN_SCRIPT_TPL.replace(
-                '{username}', config.autologin_username
-            ).replace(
-                '{password}', config.autologin_password
-            )
-            run_script(self, script_code)
-        else:
-            print(f"[Browser {self.browser_id}] Max login attempts reached.")
+        # Deprecated: logic moved to _inject_autologin and handled in _on_load_finished directly
+        pass
 
     def _inject_css(self):
         css_path = QFile(APP_DIR / "style.css")
@@ -133,6 +137,7 @@ class BrowserView(QWebEngineView):
             "{css}", css_content
         )
         run_script(self, script_code, name="injectedCSS")
+        self.page.runJavaScript(script_code)
         print(f"[Browser {self.browser_id}] Injected custom CSS.")
 
     def _insert_logo(self):
@@ -143,6 +148,7 @@ class BrowserView(QWebEngineView):
 
         script_code = LOGO_SCRIPT_TPL.replace('{logo_url}', logo_url)
         run_script(self, script_code, name="logo")
+        self.page.runJavaScript(script_code)
         print(f"[Browser {self.browser_id}] Injected logo.")
 
 
@@ -211,6 +217,11 @@ class AutodartsBrowser(QMainWindow):
 
     def init_config_watcher(self):
         self.watcher = QFileSystemWatcher([str(CONFIG_PATH)])
+        # Watch restart trigger file as well
+        restart_trigger = APP_DIR / ".restart_trigger"
+        if not restart_trigger.exists():
+            restart_trigger.touch()
+        self.watcher.addPath(str(restart_trigger))
         self.watcher.fileChanged.connect(self.on_config_changed)
 
     def on_config_changed(self):
@@ -247,7 +258,45 @@ class AutodartsBrowser(QMainWindow):
         QTimer.singleShot(200, QApplication.instance().quit)
 
 
+def check_and_clear_cache():
+    marker_path = APP_DIR / ".clear_cache"
+    if marker_path.exists():
+        print("[INFO] Clear cache marker found. Deleting cache...")
+        cache_dir_rel = config.cache_dir.lstrip('/\\')
+        cache_dir = APP_DIR / cache_dir_rel
+        try:
+            if cache_dir.exists():
+                # Safeguard: Ensure we are not deleting critical directories
+                resolved_cache_dir = cache_dir.resolve()
+                resolved_app_dir = APP_DIR.resolve()
+
+                # Prevent deleting the app's root directory or its parent
+                if resolved_cache_dir == resolved_app_dir or resolved_cache_dir == resolved_app_dir.parent:
+                    print(
+                        f"[ERROR] Attempt to delete application root or parent directory as cache: {cache_dir}. Aborting cache clear.")
+                    return
+                # Also check if cache_dir is a critical system path (e.g. root)
+                if str(resolved_cache_dir) == '/':
+                    print(
+                        f"[ERROR] Attempt to delete root directory as cache. Aborting cache clear.")
+                    return
+
+                shutil.rmtree(cache_dir)
+                print(f"[INFO] Cache directory {cache_dir} deleted.")
+            marker_path.unlink()
+            print("[INFO] Marker file removed.")
+        except Exception as e:
+            print(f"[ERROR] Failed to clear cache: {e}")
+
+
 def main():
+    # Check for cache clear request
+    check_and_clear_cache()
+
+    # Start the configuration server
+    print("Starting configuration server on http://0.0.0.0:5000")
+    start_server()
+
     app = QApplication(sys.argv)
 
     # --- Screen Selection ---
@@ -271,7 +320,11 @@ def main():
 
     if main_window._is_restarting:
         print("[INFO] Restarting application...")
-        os.execv(sys.executable, ['python'] + sys.argv)
+        # Give some time for resources (like port 5000) to be released
+        time.sleep(2)
+        # Clean restart using subprocess to release all file descriptors (sockets)
+        subprocess.Popen([sys.executable] + sys.argv)
+        sys.exit(0)
     else:
         print("[INFO] Application has exited.")
         sys.exit(exit_code)

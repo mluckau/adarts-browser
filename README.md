@@ -6,12 +6,15 @@ Ein spezialisierter Kiosk-Browser zur Anzeige von [Autodarts](https://autodarts.
 
 - **Anzeige von 1 oder 2 Boards**: Zeigt je nach Konfiguration ein oder zwei Autodarts-Boards übereinander an.
 - **Vollbildmodus**: Startet automatisch im Vollbild auf einem festgelegten Bildschirm.
+- **Zoom-Faktor**: Skalierung der Anzeige anpassbar (z.B. für große Fernseher).
 - **Automatischer Login**: Kann sich automatisch in Autodarts einloggen, um private Boards anzuzeigen.
 - **Auto-Refresh**: Lädt die Seiten in einem konfigurierbaren Intervall neu, um die Verbindung aktiv zu halten.
 - **Benutzerdefiniertes Styling**: Injiziert eine benutzerdefinierte `style.css`-Datei, um das Aussehen der Autodarts-Seite anzupassen (z.B. Ausblenden unnötiger Elemente).
 - **Logo-Integration**: Blendet ein benutzerdefiniertes Logo über den Boards ein.
 - **Fernwartung**: Änderungen an der `config.ini` werden zur Laufzeit erkannt und führen zu einem automatischen Neustart der Anwendung.
 - **Web-Konfiguration**: Ermöglicht die einfache Verwaltung aller Einstellungen über eine Weboberfläche.
+- **Log-Viewer**: Anzeige der System-Logs direkt im Web-Interface zur einfachen Fehlersuche.
+- **Seiten-Reload**: Manuelles Neuladen der Boards per Web-Interface ohne kompletten Neustart.
 - **Headless-Betrieb**: Für Systeme ohne direkt angeschlossene Eingabegeräte konzipiert.
 
 ## Installation
@@ -66,10 +69,11 @@ Nach dem Start der Anwendung ist eine komfortable Konfigurationsoberfläche übe
     Wenn Sie den Browser auf dem gleichen Gerät öffnen, können Sie auch `http://localhost:5000` verwenden.
 
 Über diese Oberfläche können Sie:
-- Alle Einstellungen bequem ändern und speichern.
+- Alle Einstellungen (inkl. Zoom-Faktor) bequem ändern und speichern.
 - Das CSS für das Styling direkt im Browser bearbeiten.
-- Die Anwendung neu starten.
+- Die Anwendung neu starten oder die angezeigten Seiten neu laden.
 - Den Browser-Cache löschen (hilfreich bei Anzeigeproblemen).
+- System-Logs einsehen, um Fehler zu diagnostizieren.
 
 ## Manuelle Konfiguration (`config.ini`)
 
@@ -89,6 +93,11 @@ Allgemeine Einstellungen für die Anwendung.
   - Das Intervall in Minuten, nach dem alle Seiten automatisch neu geladen werden. Nützlich, um Timeouts oder Verbindungsabbrüche zu verhindern.
   - **Werte**: Eine ganze Zahl (z.B. `60` für eine Stunde). `0` deaktiviert das automatische Neuladen.
   - **Standard**: `0`
+
+- **`zoom_factor`**
+  - Skaliert den Inhalt der Webseiten.
+  - **Werte**: Gleitkommazahl (z.B. `1.0` = 100%, `1.5` = 150%, `0.8` = 80%).
+  - **Standard**: `1.0`
 
 - **`screen`**
   - Der Index des Bildschirms, auf dem die Anwendung im Vollbildmodus angezeigt werden soll. `0` ist normalerweise der primäre Bildschirm.

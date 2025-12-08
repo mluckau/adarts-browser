@@ -6,9 +6,9 @@ class AppConfig:
     def __init__(self, config_path):
         self._config = configparser.ConfigParser()
         self._config_path = Path(config_path)
-        if not self._config_path.is_file():
-            raise FileNotFoundError(f"Config file not found at: {self._config_path}")
-        self._config.read(self._config_path)
+        # If file exists, read it. If not, we just have an empty config which returns fallbacks.
+        if self._config_path.is_file():
+            self._config.read(self._config_path)
 
     def get_board_url(self, board_number):
         try:

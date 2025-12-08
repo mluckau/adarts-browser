@@ -19,16 +19,10 @@ from http_server import ServeDirectoryWithHTTP
 from config_server import start_server
 
 # --- Constants & Global Config ---
-try:
-    APP_DIR = Path(__file__).parent
-    SCRIPTS_DIR = APP_DIR / "scripts"
-    CONFIG_PATH = APP_DIR / "config.ini"
-    config = AppConfig(CONFIG_PATH)
-except FileNotFoundError as e:
-    app = QApplication(sys.argv)
-    QMessageBox.critical(None, "Configuration Error",
-                         f"Configuration file not found.\n{e}")
-    sys.exit(1)
+APP_DIR = Path(__file__).parent
+SCRIPTS_DIR = APP_DIR / "scripts"
+CONFIG_PATH = APP_DIR / "config.ini"
+config = AppConfig(CONFIG_PATH)
 
 # --- Script Templates ---
 try:
@@ -180,6 +174,10 @@ class AutodartsBrowser(QMainWindow):
 
         # Create Browser 1
         url1 = config.get_board_url(1)
+        if not url1:
+            print("[INFO] No Board URL configured. Loading setup_needed.html.")
+            url1 = f"file://{APP_DIR / 'templates' / 'setup_needed.html'}"
+
         browser1 = BrowserView(1, url1, self)
         self.browsers.append(browser1)
         self.layout.addWidget(browser1)

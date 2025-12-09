@@ -71,6 +71,7 @@ class ConfigForm(Form):
     
     # Style Section
     style_activate = BooleanField('Eigenes Styling (style.css) aktivieren')
+    auto_coords_mode = BooleanField('Automatisch "Coords mode" aktivieren')
     
     # Logos Section
     logos_enable = BooleanField('Logo anzeigen')
@@ -183,7 +184,9 @@ def index():
         config.set('boards', 'board1_id', form.board1_id.data)
         config.set('boards', 'board2_id', form.board2_id.data)
 
+        if not config.has_section('style'): config.add_section('style')
         config.set('style', 'activate', str(form.style_activate.data).lower())
+        config.set('style', 'auto_coords_mode', str(form.auto_coords_mode.data).lower())
 
         config.set('logos', 'enable', str(form.logos_enable.data).lower())
         config.set('logos', 'local', str(form.logos_local.data).lower())
@@ -228,6 +231,7 @@ def index():
         form.board2_id.data = config.get('boards', 'board2_id', fallback='')
         
         form.style_activate.data = config.getboolean('style', 'activate', fallback=False)
+        form.auto_coords_mode.data = config.getboolean('style', 'auto_coords_mode', fallback=False)
         
         form.logos_enable.data = config.getboolean('logos', 'enable', fallback=False)
         form.logos_local.data = config.getboolean('logos', 'local', fallback=False)

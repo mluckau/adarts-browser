@@ -128,6 +128,10 @@ class AppConfig:
     def web_password_hash(self):
         return self._config.get("security", "password_hash", fallback="")
     
+    @property
+    def auto_coords_mode(self):
+        return self._config.getboolean("style", "auto_coords_mode", fallback=False)
+    
     # --- Raw Access for Form Population ---
     # Used by config_server to populate forms, allowing us to get raw values or defaults
     def get(self, section, option, fallback=None):

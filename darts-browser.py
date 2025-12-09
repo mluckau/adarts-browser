@@ -158,7 +158,11 @@ class BrowserView(QWebEngineView):
 
     def _insert_logo(self):
         if config.logos_local:
-            logo_url = f"http://localhost:3344/{config.logo_source}"
+            if self.local_http_port:
+                logo_url = f"http://localhost:{self.local_http_port}/{config.logo_source}"
+            else:
+                print("[ERROR] Local HTTP server not started, cannot serve local logo.")
+                return
         else:
             logo_url = config.logo_source
 
@@ -189,6 +193,7 @@ class AutodartsBrowser(QMainWindow):
         self._is_restarting = False
         self.browsers = []
         self.http_server = None
+        self.local_http_port = None # Initialize local HTTP server port
 
         self.start_http_server()
         self.init_ui()
@@ -226,9 +231,12 @@ class AutodartsBrowser(QMainWindow):
             self.layout.addWidget(browser2)
 
     def start_http_server(self):
-        if config.use_custom_style and config.logos_enabled and config.logos_local:
-            self.http_server, _ = ServeDirectoryWithHTTP(
+        if config.logos_enabled and config.logos_local: # Only start if local logos are enabled
+            self.http_server, _, self.local_http_port = ServeDirectoryWithHTTP(
                 directory=str(APP_DIR))
+            print(f"[INFO] Local HTTP server started on port: {self.local_http_port}")
+        else:
+            self.local_http_port = 3344 # Fallback to default if local server is not started (e.g. for logos_local=False case)
 
     def load_pages(self):
         for browser in self.browsers:

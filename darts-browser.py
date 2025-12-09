@@ -5,6 +5,7 @@ import threading
 import time
 import subprocess
 import base64
+import json
 from pathlib import Path
 from PySide6.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QWidget, QMessageBox
 from PySide6.QtCore import QUrl, QFile, Qt, QTimer, QFileSystemWatcher
@@ -18,14 +19,12 @@ from PySide6.QtWebEngineCore import (
 from config import AppConfig
 from http_server import ServeDirectoryWithHTTP
 from config_server import start_server
+from utils import (
+    APP_DIR, SCRIPTS_DIR, CONFIG_PATH, CSS_PATH,
+    RESTART_TRIGGER_PATH, RELOAD_TRIGGER_PATH, CLEAR_CACHE_MARKER_PATH
+)
 
-# --- Constants & Global Config ---
-APP_DIR = Path(__file__).parent
-SCRIPTS_DIR = APP_DIR / "scripts"
-CONFIG_PATH = APP_DIR / "config.ini"
-CSS_PATH = APP_DIR / "style.css"
-RESTART_TRIGGER_PATH = APP_DIR / ".restart_trigger"
-RELOAD_TRIGGER_PATH = APP_DIR / ".reload_trigger"
+# --- Global Config ---
 config = AppConfig(CONFIG_PATH)
 
 # --- Script Templates ---
@@ -109,25 +108,37 @@ class BrowserView(QWebEngineView):
 
             # Always try to inject autologin script, in case login form is on the target page
             if config.autologin_enabled:
-                self._inject_autologin()
+                 # Check max attempts even for target page to be safe, though usually we want to retry if we landed here but are logged out
+                 if self.login_attempts < config.autologin_max_attempts:
+                    self.login_attempts += 1
+                    self._inject_autologin()
 
         else:
             print(
-                f"[Browser {self.browser_id}] Redirected to {current_url}. Attempting login...")
+                f"[Browser {self.browser_id}] Redirected to {current_url}. Attempting login... (Attempt {self.login_attempts + 1}/{config.autologin_max_attempts})")
             if config.autologin_enabled:
-                self._inject_autologin()
+                if self.login_attempts < config.autologin_max_attempts:
+                    self.login_attempts += 1
+                    self._inject_autologin()
+                else:
+                    print(f"[Browser {self.browser_id}] Max login attempts reached. Stopping autologin.")
         
         # Inject offline check script
         self._inject_offline_check()
 
     def _inject_autologin(self):
-        print(f"[Browser {self.browser_id}] Injecting autologin script...")
+        print(f"[Browser {self.browser_id}] Injecting autologin script... (Attempt {self.login_attempts}/{config.autologin_max_attempts})")
+        
+        # No need to check for empty here, if config is empty, the JS will simply try to set empty values.
+        # This will be handled by the login page, which will probably reject empty credentials.
+
         script_code = LOGIN_SCRIPT_TPL.replace(
             '{username}', config.autologin_username
         ).replace(
             '{password}', config.autologin_password
         )
         run_script(self, script_code, name="autologin")
+        self.page.runJavaScript(script_code)
 
     def _try_login(self):
         pass
@@ -342,9 +353,8 @@ class AutodartsBrowser(QMainWindow):
         QTimer.singleShot(200, QApplication.instance().quit)
 
 
-def check_and_clear_cache():
-    marker_path = APP_DIR / ".clear_cache"
-    if marker_path.exists():
+def perform_cache_cleanup():
+    if CLEAR_CACHE_MARKER_PATH.exists():
         print("[INFO] Clear cache marker found. Deleting cache...")
         cache_dir_rel = config.cache_dir.lstrip('/\\')
         cache_dir = APP_DIR / cache_dir_rel
@@ -367,7 +377,7 @@ def check_and_clear_cache():
 
                 shutil.rmtree(cache_dir)
                 print(f"[INFO] Cache directory {cache_dir} deleted.")
-            marker_path.unlink()
+            CLEAR_CACHE_MARKER_PATH.unlink()
             print("[INFO] Marker file removed.")
         except Exception as e:
             print(f"[ERROR] Failed to clear cache: {e}")
@@ -376,7 +386,7 @@ def check_and_clear_cache():
 def main():
     try:
         # Check for cache clear request
-        check_and_clear_cache()
+        perform_cache_cleanup()
 
         # Start the configuration server
         print("Starting configuration server on http://0.0.0.0:5000")

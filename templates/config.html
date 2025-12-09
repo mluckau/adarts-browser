@@ -123,6 +123,30 @@
                 </div>
             </div>
 
+            <!-- Security -->
+            <div class="card">
+                <div class="section-header">Sicherheit (Web-Interface)</div>
+                <div class="card-body">
+                    <div class="alert alert-info">
+                        <strong>Hinweis:</strong> Wenn Sie den Passwortschutz aktivieren, müssen Sie sich beim nächsten Zugriff anmelden.
+                        Der Standard-Benutzername ist <code>admin</code>.
+                    </div>
+                    <div class="form-check mb-3">
+                        {{ form.security_enable(class="form-check-input") }}
+                        <label class="form-check-label" for="security_enable">{{ form.security_enable.label }}</label>
+                    </div>
+                    <div class="mb-3">
+                        <label for="security_username" class="form-label">{{ form.security_username.label }}</label>
+                        {{ form.security_username(class="form-control") }}
+                    </div>
+                    <div class="mb-3">
+                        <label for="security_new_password" class="form-label">{{ form.security_new_password.label }}</label>
+                        {{ form.security_new_password(class="form-control") }}
+                        <div class="form-text">Lassen Sie dieses Feld leer, wenn Sie das aktuelle Passwort beibehalten möchten.</div>
+                    </div>
+                </div>
+            </div>
+
             <div class="d-grid gap-2 mb-5">
                 <button type="submit" class="btn btn-primary btn-lg">Speichern & Neustarten</button>
             </div>

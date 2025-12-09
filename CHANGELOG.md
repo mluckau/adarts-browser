@@ -5,6 +5,10 @@ Alle Änderungen am Projekt werden in dieser Datei dokumentiert.
 ## [Unreleased] - 2025-12-08
 
 ### Hinzugefügt
+- **Sicherheit**:
+  - Optionaler Passwortschutz für das Web-Interface.
+  - Passwörter werden sicher gehasht in der `config.ini` gespeichert.
+  - Login/Logout-Funktionalität.
 - **Web-Interface zur Konfiguration**:
   - Vollständige Konfiguration über Browser (`http://<IP>:5000`)
   - Live-Bearbeitung von `style.css` mit sofortiger Aktualisierung auf dem Display

@@ -72,6 +72,18 @@ class AppConfig:
     def screen(self):
         return self._config.getint("main", "screen", fallback=0)
 
+    @property
+    def web_auth_enabled(self):
+        return self._config.getboolean("security", "enable_auth", fallback=False)
+
+    @property
+    def web_username(self):
+        return self._config.get("security", "username", fallback="admin")
+
+    @property
+    def web_password_hash(self):
+        return self._config.get("security", "password_hash", fallback="")
+
 def get_config():
     working_path = Path(__file__).parent
     config_file = working_path / "config.ini"

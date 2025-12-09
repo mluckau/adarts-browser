@@ -3,8 +3,10 @@ import threading
 import os
 import time
 from pathlib import Path
-from flask import Flask, render_template, request, flash, redirect, url_for
+from functools import wraps
+from flask import Flask, render_template, request, flash, redirect, url_for, session
 from wtforms import Form, StringField, IntegerField, BooleanField, PasswordField, TextAreaField, FloatField, validators
+from werkzeug.security import generate_password_hash, check_password_hash
 
 # Configuration Paths
 APP_DIR = Path(__file__).parent
@@ -16,6 +18,45 @@ RELOAD_TRIGGER_PATH = APP_DIR / ".reload_trigger" # New reload trigger
 
 app = Flask(__name__)
 app.secret_key = 'adarts-browser-secret-key'  # Needed for flash messages
+
+def login_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        config = read_config()
+        # Check if auth is enabled in config
+        auth_enabled = config.getboolean("security", "enable_auth", fallback=False)
+        
+        if auth_enabled:
+            if not session.get('logged_in'):
+                return redirect(url_for('login', next=request.url))
+        return f(*args, **kwargs)
+    return decorated_function
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        
+        config = read_config()
+        conf_user = config.get("security", "username", fallback="admin")
+        conf_hash = config.get("security", "password_hash", fallback="")
+        
+        if username == conf_user and check_password_hash(conf_hash, password):
+            session['logged_in'] = True
+            flash('Erfolgreich eingeloggt.', 'success')
+            next_url = request.args.get('next')
+            return redirect(next_url or url_for('index'))
+        else:
+            flash('Ungültiger Benutzername oder Passwort.', 'danger')
+            
+    return render_template('login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('logged_in', None)
+    flash('Ausgeloggt.', 'info')
+    return redirect(url_for('login'))
 
 class ConfigForm(Form):
     # Main Section
@@ -41,6 +82,11 @@ class ConfigForm(Form):
     autologin_username = StringField('Benutzername (Email)')
     autologin_password = PasswordField('Passwort')
     autologin_versuche = IntegerField('Max. Login-Versuche')
+
+    # Security Section
+    security_enable = BooleanField('Passwortschutz für Konfiguration aktivieren')
+    security_username = StringField('Benutzername (Standard: admin)')
+    security_new_password = PasswordField('Neues Passwort setzen (leer lassen zum Beibehalten)')
 
 class CSSForm(Form):
     css_content = TextAreaField('CSS Inhalt')
@@ -133,6 +179,7 @@ def delete_theme(name):
         return False
 
 @app.route('/', methods=['GET', 'POST'])
+@login_required
 def index():
     config = read_config()
     form = ConfigForm(request.form)
@@ -163,6 +210,17 @@ def index():
         config.set('autologin', 'passwort', form.autologin_password.data)
         config.set('autologin', 'versuche', str(form.autologin_versuche.data))
 
+        # Security Section
+        if not config.has_section('security'): config.add_section('security')
+        config.set('security', 'enable_auth', str(form.security_enable.data).lower())
+        config.set('security', 'username', form.security_username.data)
+        
+        # Only update hash if a new password is provided
+        new_pass = form.security_new_password.data
+        if new_pass:
+            hashed_pw = generate_password_hash(new_pass)
+            config.set('security', 'password_hash', hashed_pw)
+
         write_config(config)
         flash('Konfiguration gespeichert! Anwendung startet neu...', 'success')
         return redirect(url_for('index'))
@@ -188,12 +246,16 @@ def index():
         form.autologin_password.data = config.get('autologin', 'passwort', fallback='')
         form.autologin_versuche.data = config.getint('autologin', 'versuche', fallback=3)
 
+        form.security_enable.data = config.getboolean('security', 'enable_auth', fallback=False)
+        form.security_username.data = config.get('security', 'username', fallback='admin')
+
     except Exception as e:
         flash(f'Fehler beim Laden der Konfiguration: {e}', 'danger')
 
     return render_template('config.html', form=form)
 
 @app.route('/css', methods=['GET', 'POST'])
+@login_required
 def edit_css():
     form = CSSForm(request.form)
     
@@ -240,12 +302,14 @@ def edit_css():
 
 
 @app.route('/restart', methods=['POST'])
+@login_required
 def restart_app():
     delayed_restart_trigger()
     flash('Neustart ausgelöst! Die Anwendung startet in wenigen Sekunden neu.', 'info')
     return redirect(url_for('index'))
 
 @app.route('/reload_pages', methods=['POST'])
+@login_required
 def reload_pages():
     delayed_reload_trigger()
     flash('Seiten-Neuladen ausgelöst! Die Browserseiten werden aktualisiert.', 'info')
@@ -253,6 +317,7 @@ def reload_pages():
 
 
 @app.route('/clear_cache', methods=['POST'])
+@login_required
 def clear_cache():
     try:
         # Create marker file
@@ -268,6 +333,7 @@ def clear_cache():
 
 
 @app.route('/logs')
+@login_required
 def view_logs():
     log_path = Path('/tmp/adarts-browser.log')
     logs = []

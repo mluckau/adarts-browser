@@ -11,7 +11,7 @@ Ein spezialisierter Kiosk-Browser zur Anzeige von [Autodarts](https://autodarts.
 - **Auto-Refresh**: Lädt die Seiten in einem konfigurierbaren Intervall neu, um die Verbindung aktiv zu halten.
 - **Offline-Erkennung**: Zeigt bei Verbindungsabbruch eine informative Warteseite anstatt eines Fehlers und verbindet sich automatisch neu.
 - **Benutzerdefiniertes Styling**: Injiziert eine benutzerdefinierte `style.css`-Datei, um das Aussehen der Autodarts-Seite anzupassen (z.B. Ausblenden unnötiger Elemente).
-- **Theme-Verwaltung**: Speichere und lade verschiedene CSS-Styles (Themes) über das Web-Interface.
+- **Theme-Verwaltung**: Speichere, lade, benenne um und lösche verschiedene CSS-Styles (Themes) über das Web-Interface.
 - **Logo-Integration**: Blendet ein benutzerdefiniertes Logo über den Boards ein.
 - **Fernwartung**: Änderungen an der `config.ini` werden zur Laufzeit erkannt und führen zu einem automatischen Neustart der Anwendung.
 - **Web-Konfiguration**: Ermöglicht die einfache Verwaltung aller Einstellungen über eine Weboberfläche.

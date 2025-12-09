@@ -21,7 +21,7 @@ from http_server import ServeDirectoryWithHTTP
 from config_server import start_server
 from utils import (
     APP_DIR, SCRIPTS_DIR, CONFIG_PATH, CSS_PATH,
-    RESTART_TRIGGER_PATH, RELOAD_TRIGGER_PATH, CLEAR_CACHE_MARKER_PATH
+    RESTART_TRIGGER_PATH, RELOAD_TRIGGER_PATH, CLEAR_CACHE_MARKER_PATH, LOG_PATH, LOG_DIR
 )
 
 # --- Global Config ---
@@ -385,6 +385,26 @@ def perform_cache_cleanup():
 
 def main():
     try:
+        # Setup logging
+        import logging
+        logging.basicConfig(filename=str(LOG_PATH), level=logging.INFO, 
+                            format='%(asctime)s - %(levelname)s - %(message)s')
+        
+        # Redirect stdout and stderr to the log file
+        class LogWriter:
+            def __init__(self, level):
+                self.level = level
+            def write(self, message):
+                if message.strip():
+                    self.level(message.strip())
+            def flush(self):
+                pass
+
+        sys.stdout = LogWriter(logging.info)
+        sys.stderr = LogWriter(logging.error)
+
+        print("Application started.")
+
         # Check for cache clear request
         perform_cache_cleanup()
 
@@ -426,7 +446,9 @@ def main():
             
     except Exception as e:
         import traceback
-        with open("crash.log", "w") as f:
+        if not LOG_DIR.exists():
+            LOG_DIR.mkdir()
+        with open(LOG_DIR / "crash.log", "w") as f:
             f.write(traceback.format_exc())
         print(f"[CRITICAL] Application crashed: {e}")
         sys.exit(1)

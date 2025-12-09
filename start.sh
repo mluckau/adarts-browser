@@ -21,5 +21,6 @@ cd "$SCRIPT_DIR" || { echo "Fehler: Konnte nicht nach $SCRIPT_DIR wechseln" > /t
 
 # 5. Anwendung starten
 # Nutzt den Python-Interpreter der virtuellen Umgebung (.venv).
-# Schreibt Ausgaben (stdout) und Fehler (stderr) in eine Logdatei unter /tmp.
-./.venv/bin/python darts-browser.py > /tmp/adarts-browser.log 2>&1
+# Schreibt Ausgaben (stdout) und Fehler (stderr) in eine Logdatei im logs/ Ordner.
+mkdir -p logs
+./.venv/bin/python darts-browser.py > logs/adarts-browser.log 2>&1

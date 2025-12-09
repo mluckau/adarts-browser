@@ -17,7 +17,11 @@ RELOAD_TRIGGER_PATH = APP_DIR / ".reload_trigger"
 CLEAR_CACHE_MARKER_PATH = APP_DIR / ".clear_cache"
 
 # Logging
-LOG_PATH = Path('/tmp/adarts-browser.log')
+LOG_DIR = APP_DIR / "logs"
+LOG_PATH = LOG_DIR / "adarts-browser.log"
+
+if not LOG_DIR.exists():
+    LOG_DIR.mkdir()
 
 def touch_trigger_file(path, delay=0.0):
     """Touches a trigger file, optionally after a delay (in a separate thread)."""

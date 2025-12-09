@@ -2,7 +2,7 @@ import threading
 import time
 from functools import wraps
 from flask import Flask, render_template, request, flash, redirect, url_for, session
-from wtforms import Form, StringField, IntegerField, BooleanField, PasswordField, TextAreaField, FloatField, validators
+from wtforms import Form, StringField, IntegerField, BooleanField, PasswordField, TextAreaField, FloatField, validators, SelectField
 from werkzeug.security import generate_password_hash, check_password_hash
 
 # Import centralized configuration and utilities
@@ -71,7 +71,12 @@ class ConfigForm(Form):
     
     # Style Section
     style_activate = BooleanField('Eigenes Styling (style.css) aktivieren')
-    auto_coords_mode = BooleanField('Automatisch "Coords mode" aktivieren')
+    view_mode = SelectField('Automatische Ansicht', choices=[
+        ('none', 'Keine Änderung'),
+        ('Segments mode', 'Segments Mode'),
+        ('Coords mode', 'Coords Mode'),
+        ('Live mode', 'Live Mode')
+    ])
     
     # Logos Section
     logos_enable = BooleanField('Logo anzeigen')
@@ -186,7 +191,14 @@ def index():
 
         if not config.has_section('style'): config.add_section('style')
         config.set('style', 'activate', str(form.style_activate.data).lower())
-        config.set('style', 'auto_coords_mode', str(form.auto_coords_mode.data).lower())
+        config.set('style', 'view_mode', form.view_mode.data)
+        
+        # Cleanup old setting to prevent conflicts
+        if config.has_section('style'):
+            config.remove_option('style', 'auto_coords_mode')
+            # Also remove from [boards] if it was ever there (mistake in previous version)
+            if config.has_section('boards'):
+                config.remove_option('boards', 'auto_coords_mode')
 
         config.set('logos', 'enable', str(form.logos_enable.data).lower())
         config.set('logos', 'local', str(form.logos_local.data).lower())
@@ -231,7 +243,7 @@ def index():
         form.board2_id.data = config.get('boards', 'board2_id', fallback='')
         
         form.style_activate.data = config.getboolean('style', 'activate', fallback=False)
-        form.auto_coords_mode.data = config.getboolean('style', 'auto_coords_mode', fallback=False)
+        form.view_mode.data = config.view_mode # Use property to handle migration logic
         
         form.logos_enable.data = config.getboolean('logos', 'enable', fallback=False)
         form.logos_local.data = config.getboolean('logos', 'local', fallback=False)

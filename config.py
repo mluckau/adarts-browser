@@ -129,8 +129,13 @@ class AppConfig:
         return self._config.get("security", "password_hash", fallback="")
     
     @property
-    def auto_coords_mode(self):
-        return self._config.getboolean("style", "auto_coords_mode", fallback=False)
+    def view_mode(self):
+        # Migration logic for old boolean setting
+        old_auto_coords = self._config.getboolean("style", "auto_coords_mode", fallback=False)
+        if old_auto_coords:
+            return "Coords mode"
+            
+        return self._config.get("style", "view_mode", fallback="none")
     
     # --- Raw Access for Form Population ---
     # Used by config_server to populate forms, allowing us to get raw values or defaults
@@ -151,6 +156,10 @@ class AppConfig:
 
     def add_section(self, section):
         self._config.add_section(section)
+
+    def remove_option(self, section, option):
+        """Removes an option from a section."""
+        return self._config.remove_option(section, option)
 
 def get_config():
     return AppConfig(CONFIG_PATH)

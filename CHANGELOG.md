@@ -5,7 +5,7 @@ Alle Änderungen am Projekt werden in dieser Datei dokumentiert.
 ## [Unreleased] - 2025-12-08
 
 ### Hinzugefügt
-- **Coords Mode**: Neue Option "Automatisch 'Coords mode' aktivieren" unter "Styling & Logo", die den entsprechenden Button auf der Autodarts-Webseite automatisch klickt.
+- **Ansichts-Modus**: Neue Option "Automatische Ansicht" (view_mode) unter "Styling & Logo", um zwischen "Segments mode", "Coords mode" und "Live mode" automatisch umzuschalten.
 - **Autologin-Sicherheit**: Das Autodarts-Passwort wird nun lokal verschlüsselt (AES) in der `config.ini` gespeichert, wenn es über das Web-Interface gesetzt wird.
 - **Logging**: Logs werden nun persistent im Ordner `logs/` (statt `/tmp`) gespeichert und sind somit auch nach einem Reboot verfügbar.
 - **Code-Qualität**: Umfangreiches Refactoring und Zentralisierung der Konfigurationslogik.

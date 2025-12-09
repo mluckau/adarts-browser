@@ -163,8 +163,14 @@ Einstellungen für die Anzeige eines Logos.
   - **Standard**: `false`
 
 - **`logo`**
-  - URL oder relativer Pfad zum Logo.
+  - Die Quelle des Logos.
+  - Wenn `local = true`: Der relative Pfad zur Bilddatei (z.B. `scripts/logo.png`).
+  - Wenn `local = false`: Eine vollständige URL zu einem online gehosteten Bild.
   - **Standard**: `""`
+
+- **`auto_coords_mode`**
+  - Wenn `true`, versucht der Browser automatisch, den "Coords mode" Button auf der Autodarts-Seite zu klicken (nützlich für spezielle Anzeigen).
+  - **Standard**: `false`
 
 ---
 

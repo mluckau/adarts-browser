@@ -16,7 +16,7 @@ from PySide6.QtWebEngineCore import (
     QWebEngineScript,
     QWebEngineSettings,
 )
-from config import AppConfig
+from config import AppConfig, __version__
 from http_server import ServeDirectoryWithHTTP
 from config_server import start_server
 from utils import (
@@ -225,7 +225,7 @@ class AutodartsBrowser(QMainWindow):
         self.init_config_watcher()
 
     def init_ui(self):
-        self.setWindowTitle("Autodarts Webbrowser")
+        self.setWindowTitle(f"Autodarts Webbrowser v{__version__}")
         self.setWindowFlag(Qt.WindowType.FramelessWindowHint, True)
         self.setWindowFlag(Qt.WindowStaysOnTopHint, True)
         self.setStyleSheet("background-color: black;")
@@ -415,7 +415,7 @@ def main():
         sys.stdout = LogWriter(logging.info)
         sys.stderr = LogWriter(logging.error)
 
-        print("Application started.")
+        print(f"Application started. Version: {__version__}")
 
         # Check for cache clear request
         perform_cache_cleanup()

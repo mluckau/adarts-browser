@@ -4,6 +4,8 @@ import uuid
 from pathlib import Path
 from utils import CONFIG_PATH, decrypt_value
 
+__version__ = "0.2.0"
+
 class AppConfig:
     def __init__(self, config_path=CONFIG_PATH):
         # Allow # in values by restricting comment prefixes to ;
@@ -51,6 +53,10 @@ class AppConfig:
     @property
     def device_name(self):
         return self._config.get("main", "device_name", fallback="")
+
+    @property
+    def version(self):
+        return __version__
 
     @property
     def use_custom_style(self):

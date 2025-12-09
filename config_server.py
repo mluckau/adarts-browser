@@ -18,7 +18,7 @@ app.secret_key = 'adarts-browser-secret-key'  # Needed for flash messages
 @app.context_processor
 def inject_device_info():
     config = get_config()
-    return dict(global_device_name=config.device_name)
+    return dict(global_device_name=config.device_name, global_version=config.version)
 
 def login_required(f):
     @wraps(f)

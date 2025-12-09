@@ -2,7 +2,7 @@
 
 Alle Änderungen am Projekt werden in dieser Datei dokumentiert.
 
-## [Unreleased] - 2025-12-08
+## [0.2.0] - 2025-12-09
 
 ### Hinzugefügt
 - **Ansichts-Modus**: Neue Option "Automatische Ansicht" (view_mode) unter "Styling & Logo", um zwischen "Segments mode", "Coords mode" und "Live mode" automatisch umzuschalten.

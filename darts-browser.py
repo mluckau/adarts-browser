@@ -39,6 +39,8 @@ try:
         OFFLINE_PAGE_TPL = f.read()
     with open(SCRIPTS_DIR / "offline_check.js", "r") as f:
         OFFLINE_CHECK_SCRIPT_TPL = f.read()
+    with open(SCRIPTS_DIR / "coords_mode.js", "r") as f:
+        COORDS_MODE_TPL = f.read()
 except FileNotFoundError as e:
     app = QApplication(sys.argv)
     QMessageBox.critical(None, "Script Error",
@@ -112,6 +114,9 @@ class BrowserView(QWebEngineView):
                  if self.login_attempts < config.autologin_max_attempts:
                     self.login_attempts += 1
                     self._inject_autologin()
+            
+            if config.auto_coords_mode:
+                self._inject_coords_mode()
 
         else:
             print(
@@ -139,6 +144,11 @@ class BrowserView(QWebEngineView):
         )
         run_script(self, script_code, name="autologin")
         self.page.runJavaScript(script_code)
+
+    def _inject_coords_mode(self):
+        print(f"[Browser {self.browser_id}] Injecting Coords Mode script...")
+        run_script(self, COORDS_MODE_TPL, name="coordsMode")
+        self.page.runJavaScript(COORDS_MODE_TPL)
 
     def _try_login(self):
         pass

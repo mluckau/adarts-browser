@@ -80,6 +80,10 @@
                     <div class="mb-3">
                         <a href="{{ url_for('edit_css') }}" class="btn btn-outline-secondary btn-sm">Style.css bearbeiten</a>
                     </div>
+                    <div class="form-check mb-3">
+                        {{ form.auto_coords_mode(class="form-check-input") }}
+                        <label class="form-check-label" for="auto_coords_mode">{{ form.auto_coords_mode.label }}</label>
+                    </div>
                     <hr>
                     <div class="form-check mb-3">
                         {{ form.logos_enable(class="form-check-input") }}

@@ -11,6 +11,7 @@ Ein spezialisierter Kiosk-Browser zur Anzeige von [Autodarts](https://autodarts.
 - **Auto-Refresh**: Lädt die Seiten in einem konfigurierbaren Intervall neu, um die Verbindung aktiv zu halten.
 - **Offline-Erkennung**: Zeigt bei Verbindungsabbruch eine informative Warteseite anstatt eines Fehlers und verbindet sich automatisch neu.
 - **Benutzerdefiniertes Styling**: Injiziert eine benutzerdefinierte `style.css`-Datei, um das Aussehen der Autodarts-Seite anzupassen (z.B. Ausblenden unnötiger Elemente).
+- **Theme-Verwaltung**: Speichere und lade verschiedene CSS-Styles (Themes) über das Web-Interface.
 - **Logo-Integration**: Blendet ein benutzerdefiniertes Logo über den Boards ein.
 - **Fernwartung**: Änderungen an der `config.ini` werden zur Laufzeit erkannt und führen zu einem automatischen Neustart der Anwendung.
 - **Web-Konfiguration**: Ermöglicht die einfache Verwaltung aller Einstellungen über eine Weboberfläche.
@@ -71,7 +72,8 @@ Nach dem Start der Anwendung ist eine komfortable Konfigurationsoberfläche übe
 
 Über diese Oberfläche können Sie:
 - Alle Einstellungen (inkl. Zoom-Faktor) bequem ändern und speichern.
-- Das CSS für das Styling direkt im Browser bearbeiten.
+- Das CSS für das Styling direkt im Browser bearbeiten (**Live-Update** auf dem TV-Bildschirm).
+- **Themes verwalten**: Im CSS-Editor können Sie Ihr aktuelles CSS als Theme speichern, vorhandene Themes laden oder löschen.
 - Die Anwendung neu starten oder die angezeigten Seiten neu laden.
 - Den Browser-Cache löschen (hilfreich bei Anzeigeproblemen).
 - System-Logs einsehen, um Fehler zu diagnostizieren.
@@ -128,6 +130,7 @@ Einstellungen für das benutzerdefinierte CSS-Styling.
   - Aktiviert oder deaktiviert das Injizieren der `style.css`-Datei.
   - **Werte**: `true` oder `false`
   - **Standard**: `false`
+  - *Hinweis:* Die `style.css` kann über das Web-Interface im "CSS Editor" live bearbeitet und als Theme gespeichert/geladen werden.
 
 ---
 

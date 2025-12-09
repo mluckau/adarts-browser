@@ -47,7 +47,9 @@ class AppConfig:
 
     @property
     def autologin_max_attempts(self):
-        return self._config.getint("autologin", "versuche", fallback=3)
+        # Prefer 'attempts', fallback to 'versuche' for backward compatibility
+        return self._config.getint("autologin", "attempts", 
+                                  fallback=self._config.getint("autologin", "versuche", fallback=3))
 
     @property
     def autologin_username(self):
@@ -55,7 +57,9 @@ class AppConfig:
 
     @property
     def autologin_password(self):
-        return self._config.get("autologin", "passwort", fallback="")
+        # Prefer 'password', fallback to 'passwort' for backward compatibility
+        return self._config.get("autologin", "password",
+                               fallback=self._config.get("autologin", "passwort", fallback=""))
 
     @property
     def refresh_interval_min(self):

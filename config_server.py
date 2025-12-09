@@ -81,7 +81,7 @@ class ConfigForm(Form):
     autologin_enable = BooleanField('Auto-Login aktivieren')
     autologin_username = StringField('Benutzername (Email)')
     autologin_password = PasswordField('Passwort')
-    autologin_versuche = IntegerField('Max. Login-Versuche')
+    autologin_attempts = IntegerField('Max. Login-Versuche')
 
     # Security Section
     security_enable = BooleanField('Passwortschutz für Konfiguration aktivieren')
@@ -207,8 +207,8 @@ def index():
         if not config.has_section('autologin'): config.add_section('autologin')
         config.set('autologin', 'enable', str(form.autologin_enable.data).lower())
         config.set('autologin', 'username', form.autologin_username.data)
-        config.set('autologin', 'passwort', form.autologin_password.data)
-        config.set('autologin', 'versuche', str(form.autologin_versuche.data))
+        config.set('autologin', 'password', form.autologin_password.data) # Changed from 'passwort'
+        config.set('autologin', 'attempts', str(form.autologin_attempts.data)) # Changed from 'versuche'
 
         # Security Section
         if not config.has_section('security'): config.add_section('security')
@@ -243,8 +243,10 @@ def index():
         
         form.autologin_enable.data = config.getboolean('autologin', 'enable', fallback=False)
         form.autologin_username.data = config.get('autologin', 'username', fallback='')
-        form.autologin_password.data = config.get('autologin', 'passwort', fallback='')
-        form.autologin_versuche.data = config.getint('autologin', 'versuche', fallback=3)
+        # Retrieve password from config.py using the new name
+        form.autologin_password.data = config.get('autologin', 'password', fallback='') 
+        # Retrieve attempts from config.py using the new name
+        form.autologin_attempts.data = config.getint('autologin', 'attempts', fallback=3)
 
         form.security_enable.data = config.getboolean('security', 'enable_auth', fallback=False)
         form.security_username.data = config.get('security', 'username', fallback='admin')

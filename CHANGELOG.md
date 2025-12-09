@@ -5,6 +5,7 @@ Alle Änderungen am Projekt werden in dieser Datei dokumentiert.
 ## [Unreleased] - 2025-12-08
 
 ### Hinzugefügt
+- **Konfiguration**: Vereinheitlichung der Konfigurationsschlüssel für Autologin von Deutsch auf Englisch (`passwort` -> `password`, `versuche` -> `attempts`) mit Abwärtskompatibilität.
 - **Dynamischer HTTP-Server Port**: Der lokale HTTP-Server (für Logos) wählt nun automatisch einen freien Port, statt einen festen Port zu verwenden.
 - **Sicherheit**:
   - Optionaler Passwortschutz für das Web-Interface.

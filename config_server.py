@@ -9,7 +9,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from config import get_config
 from utils import (
     APP_DIR, CSS_PATH, THEMES_DIR, LOG_PATH,
-    trigger_restart, trigger_reload, request_clear_cache
+    trigger_restart, trigger_reload, request_clear_cache, encrypt_value
 )
 
 app = Flask(__name__)
@@ -191,7 +191,13 @@ def index():
 
         config.set('autologin', 'enable', str(form.autologin_enable.data).lower())
         config.set('autologin', 'username', form.autologin_username.data)
-        config.set('autologin', 'password', form.autologin_password.data)
+        
+        # Only update password if a new one is provided
+        new_autologin_pw = form.autologin_password.data
+        if new_autologin_pw:
+            encrypted_pw = encrypt_value(new_autologin_pw)
+            config.set('autologin', 'password', encrypted_pw)
+            
         config.set('autologin', 'attempts', form.autologin_attempts.data)
 
         # Security Section
@@ -229,7 +235,9 @@ def index():
         
         form.autologin_enable.data = config.getboolean('autologin', 'enable', fallback=False)
         form.autologin_username.data = config.get('autologin', 'username', fallback='')
-        form.autologin_password.data = config.get('autologin', 'password', fallback='') 
+        # Do not populate password field for security and because it might be encrypted
+        form.autologin_password.data = "" 
+        # Retrieve attempts from config.py using the new name
         form.autologin_attempts.data = config.getint('autologin', 'attempts', fallback=3)
 
         form.security_enable.data = config.getboolean('security', 'enable_auth', fallback=False)

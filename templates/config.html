@@ -111,7 +111,7 @@
                     <div class="mb-3">
                         <label for="autologin_password" class="form-label">{{ form.autologin_password.label }}</label>
                         <div class="input-group">
-                            <input class="form-control" id="autologin_password" name="autologin_password" type="password" value="{{ form.autologin_password.data if form.autologin_password.data else '' }}">
+                            <input class="form-control" id="autologin_password" name="autologin_password" type="password" value="{{ form.autologin_password.data if form.autologin_password.data else '' }}" placeholder="Leer lassen um aktuelles Passwort beizubehalten">
                             <button class="btn btn-outline-secondary" type="button" id="togglePassword">
                                 👁️
                             </button>

@@ -5,6 +5,20 @@ Alle Änderungen am Projekt werden in dieser Datei dokumentiert.
 ## [Unreleased] - 2025-12-08
 
 ### Hinzugefügt
+- **Coords Mode**: Neue Option "Automatisch 'Coords mode' aktivieren" unter "Styling & Logo", die den entsprechenden Button auf der Autodarts-Webseite automatisch klickt.
+- **Autologin-Sicherheit**: Das Autodarts-Passwort wird nun lokal verschlüsselt (AES) in der `config.ini` gespeichert, wenn es über das Web-Interface gesetzt wird.
+- **Logging**: Logs werden nun persistent im Ordner `logs/` (statt `/tmp`) gespeichert und sind somit auch nach einem Reboot verfügbar.
+- **Code-Qualität**: Umfangreiches Refactoring und Zentralisierung der Konfigurationslogik.
+- **Theme-Verwaltung**: Möglichkeit zum Umbenennen von gespeicherten Themes hinzugefügt.
+- **Geräte-Identifikation**:
+  - Automatische Generierung einer eindeutigen `device_id` beim ersten Start.
+  - Option zum Festlegen eines `device_name` (z.B. "Keller"), der im Web-Interface angezeigt wird.
+- **Konfiguration**: Vereinheitlichung der Konfigurationsschlüssel für Autologin von Deutsch auf Englisch (`passwort` -> `password`, `versuche` -> `attempts`) mit Abwärtskompatibilität.
+- **Dynamischer HTTP-Server Port**: Der lokale HTTP-Server (für Logos) wählt nun automatisch einen freien Port, statt einen festen Port zu verwenden.
+- **Sicherheit**:
+  - Optionaler Passwortschutz für das Web-Interface.
+  - Passwörter werden sicher gehasht in der `config.ini` gespeichert.
+  - Login/Logout-Funktionalität.
 - **Web-Interface zur Konfiguration**:
   - Vollständige Konfiguration über Browser (`http://<IP>:5000`)
   - Live-Bearbeitung von `style.css` mit sofortiger Aktualisierung auf dem Display

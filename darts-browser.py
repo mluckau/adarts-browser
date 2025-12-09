@@ -5,6 +5,7 @@ import threading
 import time
 import subprocess
 import base64
+import json
 from pathlib import Path
 from PySide6.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QWidget, QMessageBox
 from PySide6.QtCore import QUrl, QFile, Qt, QTimer, QFileSystemWatcher
@@ -18,14 +19,12 @@ from PySide6.QtWebEngineCore import (
 from config import AppConfig
 from http_server import ServeDirectoryWithHTTP
 from config_server import start_server
+from utils import (
+    APP_DIR, SCRIPTS_DIR, CONFIG_PATH, CSS_PATH,
+    RESTART_TRIGGER_PATH, RELOAD_TRIGGER_PATH, CLEAR_CACHE_MARKER_PATH, LOG_PATH, LOG_DIR
+)
 
-# --- Constants & Global Config ---
-APP_DIR = Path(__file__).parent
-SCRIPTS_DIR = APP_DIR / "scripts"
-CONFIG_PATH = APP_DIR / "config.ini"
-CSS_PATH = APP_DIR / "style.css"
-RESTART_TRIGGER_PATH = APP_DIR / ".restart_trigger"
-RELOAD_TRIGGER_PATH = APP_DIR / ".reload_trigger"
+# --- Global Config ---
 config = AppConfig(CONFIG_PATH)
 
 # --- Script Templates ---
@@ -40,6 +39,8 @@ try:
         OFFLINE_PAGE_TPL = f.read()
     with open(SCRIPTS_DIR / "offline_check.js", "r") as f:
         OFFLINE_CHECK_SCRIPT_TPL = f.read()
+    with open(SCRIPTS_DIR / "coords_mode.js", "r") as f:
+        COORDS_MODE_TPL = f.read()
 except FileNotFoundError as e:
     app = QApplication(sys.argv)
     QMessageBox.critical(None, "Script Error",
@@ -109,25 +110,45 @@ class BrowserView(QWebEngineView):
 
             # Always try to inject autologin script, in case login form is on the target page
             if config.autologin_enabled:
-                self._inject_autologin()
+                 # Check max attempts even for target page to be safe, though usually we want to retry if we landed here but are logged out
+                 if self.login_attempts < config.autologin_max_attempts:
+                    self.login_attempts += 1
+                    self._inject_autologin()
+            
+            if config.auto_coords_mode:
+                self._inject_coords_mode()
 
         else:
             print(
-                f"[Browser {self.browser_id}] Redirected to {current_url}. Attempting login...")
+                f"[Browser {self.browser_id}] Redirected to {current_url}. Attempting login... (Attempt {self.login_attempts + 1}/{config.autologin_max_attempts})")
             if config.autologin_enabled:
-                self._inject_autologin()
+                if self.login_attempts < config.autologin_max_attempts:
+                    self.login_attempts += 1
+                    self._inject_autologin()
+                else:
+                    print(f"[Browser {self.browser_id}] Max login attempts reached. Stopping autologin.")
         
         # Inject offline check script
         self._inject_offline_check()
 
     def _inject_autologin(self):
-        print(f"[Browser {self.browser_id}] Injecting autologin script...")
+        print(f"[Browser {self.browser_id}] Injecting autologin script... (Attempt {self.login_attempts}/{config.autologin_max_attempts})")
+        
+        # No need to check for empty here, if config is empty, the JS will simply try to set empty values.
+        # This will be handled by the login page, which will probably reject empty credentials.
+
         script_code = LOGIN_SCRIPT_TPL.replace(
             '{username}', config.autologin_username
         ).replace(
             '{password}', config.autologin_password
         )
         run_script(self, script_code, name="autologin")
+        self.page.runJavaScript(script_code)
+
+    def _inject_coords_mode(self):
+        print(f"[Browser {self.browser_id}] Injecting Coords Mode script...")
+        run_script(self, COORDS_MODE_TPL, name="coordsMode")
+        self.page.runJavaScript(COORDS_MODE_TPL)
 
     def _try_login(self):
         pass
@@ -158,7 +179,11 @@ class BrowserView(QWebEngineView):
 
     def _insert_logo(self):
         if config.logos_local:
-            logo_url = f"http://localhost:3344/{config.logo_source}"
+            if self.local_http_port:
+                logo_url = f"http://localhost:{self.local_http_port}/{config.logo_source}"
+            else:
+                print("[ERROR] Local HTTP server not started, cannot serve local logo.")
+                return
         else:
             logo_url = config.logo_source
 
@@ -189,6 +214,7 @@ class AutodartsBrowser(QMainWindow):
         self._is_restarting = False
         self.browsers = []
         self.http_server = None
+        self.local_http_port = None # Initialize local HTTP server port
 
         self.start_http_server()
         self.init_ui()
@@ -226,9 +252,12 @@ class AutodartsBrowser(QMainWindow):
             self.layout.addWidget(browser2)
 
     def start_http_server(self):
-        if config.use_custom_style and config.logos_enabled and config.logos_local:
-            self.http_server, _ = ServeDirectoryWithHTTP(
+        if config.logos_enabled and config.logos_local: # Only start if local logos are enabled
+            self.http_server, _, self.local_http_port = ServeDirectoryWithHTTP(
                 directory=str(APP_DIR))
+            print(f"[INFO] Local HTTP server started on port: {self.local_http_port}")
+        else:
+            self.local_http_port = 3344 # Fallback to default if local server is not started (e.g. for logos_local=False case)
 
     def load_pages(self):
         for browser in self.browsers:
@@ -334,9 +363,8 @@ class AutodartsBrowser(QMainWindow):
         QTimer.singleShot(200, QApplication.instance().quit)
 
 
-def check_and_clear_cache():
-    marker_path = APP_DIR / ".clear_cache"
-    if marker_path.exists():
+def perform_cache_cleanup():
+    if CLEAR_CACHE_MARKER_PATH.exists():
         print("[INFO] Clear cache marker found. Deleting cache...")
         cache_dir_rel = config.cache_dir.lstrip('/\\')
         cache_dir = APP_DIR / cache_dir_rel
@@ -359,7 +387,7 @@ def check_and_clear_cache():
 
                 shutil.rmtree(cache_dir)
                 print(f"[INFO] Cache directory {cache_dir} deleted.")
-            marker_path.unlink()
+            CLEAR_CACHE_MARKER_PATH.unlink()
             print("[INFO] Marker file removed.")
         except Exception as e:
             print(f"[ERROR] Failed to clear cache: {e}")
@@ -367,8 +395,28 @@ def check_and_clear_cache():
 
 def main():
     try:
+        # Setup logging
+        import logging
+        logging.basicConfig(filename=str(LOG_PATH), level=logging.INFO, 
+                            format='%(asctime)s - %(levelname)s - %(message)s')
+        
+        # Redirect stdout and stderr to the log file
+        class LogWriter:
+            def __init__(self, level):
+                self.level = level
+            def write(self, message):
+                if message.strip():
+                    self.level(message.strip())
+            def flush(self):
+                pass
+
+        sys.stdout = LogWriter(logging.info)
+        sys.stderr = LogWriter(logging.error)
+
+        print("Application started.")
+
         # Check for cache clear request
-        check_and_clear_cache()
+        perform_cache_cleanup()
 
         # Start the configuration server
         print("Starting configuration server on http://0.0.0.0:5000")
@@ -408,7 +456,9 @@ def main():
             
     except Exception as e:
         import traceback
-        with open("crash.log", "w") as f:
+        if not LOG_DIR.exists():
+            LOG_DIR.mkdir()
+        with open(LOG_DIR / "crash.log", "w") as f:
             f.write(traceback.format_exc())
         print(f"[CRITICAL] Application crashed: {e}")
         sys.exit(1)

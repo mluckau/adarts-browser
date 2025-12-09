@@ -67,7 +67,7 @@ def ServeDirectoryWithHTTP(directory="."):
     """
 
     hostname = "localhost"
-    port = 3344
+    port = 0 # Let the OS pick a free port
     directory = abspath(directory)
     handler = partial(_SimpleRequestHandler, directory=directory)
     httpd = http.server.HTTPServer((hostname, port), handler, False)
@@ -77,10 +77,12 @@ def ServeDirectoryWithHTTP(directory="."):
     # HTTPServer sets this as well but I wanted to make this more obvious.
     httpd.allow_reuse_address = True
 
-    _xprint("server about to bind to port %d on hostname '%s'" % (port, hostname))
+    _xprint("server about to bind to an ephemeral port on hostname '%s'" % hostname)
     httpd.server_bind()
 
-    address = "http://%s:%d" % (httpd.server_name, httpd.server_port)
+    # Get the actual port assigned by the OS
+    actual_port = httpd.server_port
+    address = "http://%s:%d" % (httpd.server_name, actual_port)
 
     _xprint("server about to listen on:", address)
     httpd.server_activate()
@@ -98,7 +100,7 @@ def ServeDirectoryWithHTTP(directory="."):
     thread.setDaemon(True)
     thread.start()
 
-    return httpd, address
+    return httpd, address, actual_port
 
 
 def _xprint(*args, **kwargs):

@@ -18,3 +18,5 @@ config_example.ini
 .gitignore
 .restart_trigger
 current_packages.txt
+logs
+.secret.key

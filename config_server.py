@@ -1,38 +1,30 @@
-import configparser
 import threading
-import os
 import time
-from pathlib import Path
 from functools import wraps
 from flask import Flask, render_template, request, flash, redirect, url_for, session
 from wtforms import Form, StringField, IntegerField, BooleanField, PasswordField, TextAreaField, FloatField, validators
 from werkzeug.security import generate_password_hash, check_password_hash
 
-# Configuration Paths
-APP_DIR = Path(__file__).parent
-CONFIG_PATH = APP_DIR / "config.ini"
-CSS_PATH = APP_DIR / "style.css"
-THEMES_DIR = APP_DIR / "themes" # Themes directory
-RESTART_TRIGGER_PATH = APP_DIR / ".restart_trigger"
-RELOAD_TRIGGER_PATH = APP_DIR / ".reload_trigger" # New reload trigger
+# Import centralized configuration and utilities
+from config import get_config
+from utils import (
+    APP_DIR, CSS_PATH, THEMES_DIR, LOG_PATH,
+    trigger_restart, trigger_reload, request_clear_cache
+)
 
 app = Flask(__name__)
 app.secret_key = 'adarts-browser-secret-key'  # Needed for flash messages
 
 @app.context_processor
 def inject_device_info():
-    config = read_config()
-    name = config.get("main", "device_name", fallback="")
-    return dict(global_device_name=name)
+    config = get_config()
+    return dict(global_device_name=config.device_name)
 
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        config = read_config()
-        # Check if auth is enabled in config
-        auth_enabled = config.getboolean("security", "enable_auth", fallback=False)
-        
-        if auth_enabled:
+        config = get_config()
+        if config.web_auth_enabled:
             if not session.get('logged_in'):
                 return redirect(url_for('login', next=request.url))
         return f(*args, **kwargs)
@@ -44,9 +36,10 @@ def login():
         username = request.form.get('username')
         password = request.form.get('password')
         
-        config = read_config()
-        conf_user = config.get("security", "username", fallback="admin")
-        conf_hash = config.get("security", "password_hash", fallback="")
+        config = get_config()
+        # Direct access to config properties for security check
+        conf_user = config.web_username
+        conf_hash = config.web_password_hash
         
         if username == conf_user and check_password_hash(conf_hash, password):
             session['logged_in'] = True
@@ -97,42 +90,6 @@ class ConfigForm(Form):
 
 class CSSForm(Form):
     css_content = TextAreaField('CSS Inhalt')
-
-def read_config():
-    config = configparser.ConfigParser()
-    config.read(CONFIG_PATH)
-    return config
-
-def delayed_restart_trigger():
-    """Touches the restart trigger file after a short delay."""
-    def run():
-        time.sleep(1.0)  # Wait for response to be sent
-        try:
-            if not RESTART_TRIGGER_PATH.exists():
-                RESTART_TRIGGER_PATH.touch()
-            os.utime(RESTART_TRIGGER_PATH, None)
-        except OSError:
-            pass
-    threading.Thread(target=run, daemon=True).start()
-
-def delayed_reload_trigger():
-    """Touches the reload trigger file after a short delay."""
-    def run():
-        time.sleep(0.5)  # Shorter delay for reload
-        try:
-            if not RELOAD_TRIGGER_PATH.exists():
-                RELOAD_TRIGGER_PATH.touch()
-            os.utime(RELOAD_TRIGGER_PATH, None)
-        except OSError:
-            pass
-    threading.Thread(target=run, daemon=True).start()
-
-
-def write_config(config):
-    with open(CONFIG_PATH, 'w') as configfile:
-        config.write(configfile)
-    
-    delayed_restart_trigger()
 
 def read_css():
     if not CSS_PATH.exists():
@@ -212,38 +169,32 @@ def rename_theme(old_name, new_name):
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def index():
-    config = read_config()
+    config = get_config()
     form = ConfigForm(request.form)
 
     if request.method == 'POST' and form.validate():
-        # Update config object from form data
-        if not config.has_section('main'): config.add_section('main')
+        # Update config object from form data using the centralized AppConfig methods
         config.set('main', 'device_name', form.device_name.data)
-        config.set('main', 'browsers', str(form.browsers.data))
-        config.set('main', 'refresh_interval_min', str(form.refresh_interval_min.data))
-        config.set('main', 'zoom_factor', str(form.zoom_factor.data))
-        config.set('main', 'screen', str(form.screen.data))
+        config.set('main', 'browsers', form.browsers.data)
+        config.set('main', 'refresh_interval_min', form.refresh_interval_min.data)
+        config.set('main', 'zoom_factor', form.zoom_factor.data)
+        config.set('main', 'screen', form.screen.data)
 
-        if not config.has_section('boards'): config.add_section('boards')
         config.set('boards', 'board1_id', form.board1_id.data)
         config.set('boards', 'board2_id', form.board2_id.data)
 
-        if not config.has_section('style'): config.add_section('style')
         config.set('style', 'activate', str(form.style_activate.data).lower())
 
-        if not config.has_section('logos'): config.add_section('logos')
         config.set('logos', 'enable', str(form.logos_enable.data).lower())
         config.set('logos', 'local', str(form.logos_local.data).lower())
         config.set('logos', 'logo', form.logos_logo.data)
 
-        if not config.has_section('autologin'): config.add_section('autologin')
         config.set('autologin', 'enable', str(form.autologin_enable.data).lower())
         config.set('autologin', 'username', form.autologin_username.data)
-        config.set('autologin', 'password', form.autologin_password.data) # Changed from 'passwort'
-        config.set('autologin', 'attempts', str(form.autologin_attempts.data)) # Changed from 'versuche'
+        config.set('autologin', 'password', form.autologin_password.data)
+        config.set('autologin', 'attempts', form.autologin_attempts.data)
 
         # Security Section
-        if not config.has_section('security'): config.add_section('security')
         config.set('security', 'enable_auth', str(form.security_enable.data).lower())
         config.set('security', 'username', form.security_username.data)
         
@@ -253,12 +204,14 @@ def index():
             hashed_pw = generate_password_hash(new_pass)
             config.set('security', 'password_hash', hashed_pw)
 
-        write_config(config)
+        config.save()
+        trigger_restart()
         flash('Konfiguration gespeichert! Anwendung startet neu...', 'success')
         return redirect(url_for('index'))
 
     # Populate form from config (GET request)
     try:
+        # Use fallback values that match AppConfig properties defaults
         form.device_name.data = config.get('main', 'device_name', fallback='')
         form.browsers.data = config.getint('main', 'browsers', fallback=1)
         form.refresh_interval_min.data = config.getint('main', 'refresh_interval_min', fallback=0)
@@ -276,9 +229,7 @@ def index():
         
         form.autologin_enable.data = config.getboolean('autologin', 'enable', fallback=False)
         form.autologin_username.data = config.get('autologin', 'username', fallback='')
-        # Retrieve password from config.py using the new name
         form.autologin_password.data = config.get('autologin', 'password', fallback='') 
-        # Retrieve attempts from config.py using the new name
         form.autologin_attempts.data = config.getint('autologin', 'attempts', fallback=3)
 
         form.security_enable.data = config.getboolean('security', 'enable_auth', fallback=False)
@@ -288,8 +239,8 @@ def index():
         flash(f'Fehler beim Laden der Konfiguration: {e}', 'danger')
 
     device_info = {
-        'name': config.get('main', 'device_name', fallback=''),
-        'id': config.get('main', 'device_id', fallback='Unknown')
+        'name': config.device_name,
+        'id': config.device_id
     }
 
     return render_template('config.html', form=form, device_info=device_info)
@@ -352,14 +303,14 @@ def edit_css():
 @app.route('/restart', methods=['POST'])
 @login_required
 def restart_app():
-    delayed_restart_trigger()
+    trigger_restart()
     flash('Neustart ausgelöst! Die Anwendung startet in wenigen Sekunden neu.', 'info')
     return redirect(url_for('index'))
 
 @app.route('/reload_pages', methods=['POST'])
 @login_required
 def reload_pages():
-    delayed_reload_trigger()
+    trigger_reload()
     flash('Seiten-Neuladen ausgelöst! Die Browserseiten werden aktualisiert.', 'info')
     return redirect(url_for('index'))
 
@@ -367,15 +318,10 @@ def reload_pages():
 @app.route('/clear_cache', methods=['POST'])
 @login_required
 def clear_cache():
-    try:
-        # Create marker file
-        marker_path = APP_DIR / ".clear_cache"
-        marker_path.touch()
-        
-        delayed_restart_trigger()
+    if request_clear_cache():
         flash('Cache-Löschung angefordert! Anwendung startet neu...', 'info')
-    except Exception as e:
-        flash(f'Fehler beim Anfordern der Cache-Löschung: {e}', 'danger')
+    else:
+        flash('Fehler beim Anfordern der Cache-Löschung.', 'danger')
     
     return redirect(url_for('index'))
 
@@ -383,12 +329,11 @@ def clear_cache():
 @app.route('/logs')
 @login_required
 def view_logs():
-    log_path = Path('/tmp/adarts-browser.log')
     logs = []
-    if log_path.exists():
+    if LOG_PATH.exists():
         try:
             # Read last 200 lines efficiently
-            with open(log_path, 'r', encoding='utf-8', errors='replace') as f:
+            with open(LOG_PATH, 'r', encoding='utf-8', errors='replace') as f:
                 # deque with maxlen is an efficient way to keep only the last N lines
                 from collections import deque
                 logs = list(deque(f, 200))

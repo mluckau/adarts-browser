@@ -1,40 +1,59 @@
 try {
-    const observer = new MutationObserver(() => {
-        // Versuche verschiedene Selektoren für Benutzername und Passwort
-        let user = document.querySelector('#username') || document.querySelector('input[name="username"]') || document.querySelector('input[type="email"]');
-        let pass = document.querySelector('#password') || document.querySelector('input[name="password"]') || document.querySelector('input[type="password"]');
+    console.log("[Autologin] Starte robustes Polling...");
+
+    function setNativeValue(element, value) {
+        const lastValue = element.value;
+        element.value = value;
+        const event = new Event("input", { target: element, bubbles: true });
+        // React 15/16 hack
+        const tracker = element._valueTracker;
+        if (tracker) {
+            tracker.setValue(lastValue);
+        }
+        element.dispatchEvent(event);
+    }
+
+    var attempts = 0;
+    var loginInterval = setInterval(function() {
+        attempts++;
         
-        // Suche nach dem Login-Button (verschiedene Varianten)
-        let btn = document.querySelector('input[id="kc-login"]') || document.querySelector('button[type="submit"]') || document.querySelector('button#kc-login');
+        var userField = document.getElementById('username');
+        var passField = document.getElementById('password');
+        var submitBtn = document.getElementById('kc-login');
 
-        // Optional: "Angemeldet bleiben" Checkbox
-        let rmb = document.querySelector('input[id="rememberMe"]') || document.querySelector('input[name="rememberMe"]');
+        if (userField && passField && submitBtn) {
+            console.log("[Autologin] Elemente gefunden. Setze Werte...");
+            clearInterval(loginInterval);
 
-        if (user && pass && btn) {
-            console.log('Login-Formular gefunden. Führe Autologin aus...');
+            // React-freundliches Setzen der Werte
             
-            // Werte setzen
-            user.value = '{username}';
-            user.dispatchEvent(new Event('input', { bubbles: true })); // Event feuern für Frameworks (React/Vue etc.)
+            // Benutzername
+            const nativeInputValueSetter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value").set;
+            nativeInputValueSetter.call(userField, '{username}');
+            userField.dispatchEvent(new Event('input', { bubbles: true }));
             
-            pass.value = '{password}';
-            pass.dispatchEvent(new Event('input', { bubbles: true }));
+            // Passwort
+            nativeInputValueSetter.call(passField, '{password}');
+            passField.dispatchEvent(new Event('input', { bubbles: true }));
 
-            if (rmb) {
-                rmb.checked = true;
-                rmb.dispatchEvent(new Event('change', { bubbles: true }));
+            // Checkbox "Angemeldet bleiben"
+            var remember = document.getElementById('rememberMe');
+            if (remember && !remember.checked) {
+                remember.click();
             }
 
-            // Kurze Verzögerung vor dem Klick, um sicherzustellen, dass Events verarbeitet wurden
-            setTimeout(() => {
-                btn.click();
-            }, 500);
-
-            observer.disconnect(); // Beobachtung stoppen
+            console.log("[Autologin] Warte kurz und klicke...");
+            setTimeout(function() {
+                submitBtn.click();
+            }, 800); // Etwas mehr Zeit geben
         }
-    });
 
-    observer.observe(document.body, { childList: true, subtree: true });
-} catch (error) {
-    console.error('Fehler im Autologin-Skript:', error);
+        if (attempts > 120) { // 60 Sekunden
+            console.log("[Autologin] Timeout.");
+            clearInterval(loginInterval);
+        }
+    }, 500);
+
+} catch (e) {
+    console.error("[Autologin] Exception: " + e);
 }

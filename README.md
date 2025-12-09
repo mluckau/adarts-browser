@@ -87,29 +87,30 @@ Alternativ zur Web-Oberfläche kann die Anwendung auch direkt über die `config.
 ### `[main]`
 Allgemeine Einstellungen für die Anwendung.
 
+- **`device_name`**
+  - Ein optionaler Name für das Gerät (z.B. "Board Keller"). Wird im Web-Interface angezeigt.
+  - **Standard**: `""`
+
+- **`device_id`**
+  - Eine eindeutige ID (UUID) für diese Installation. Wird beim ersten Start automatisch generiert.
+  - *Bitte nicht manuell ändern, außer Sie wissen, was Sie tun.*
+
 - **`browsers`**
   - Definiert die Anzahl der anzuzeigenden Browser-Fenster (Boards).
   - **Werte**: `1` oder `2`
   - **Standard**: `1`
 
 - **`refresh_interval_min`**
-  - Das Intervall in Minuten, nach dem alle Seiten automatisch neu geladen werden. Nützlich, um Timeouts oder Verbindungsabbrüche zu verhindern.
-  - **Werte**: Eine ganze Zahl (z.B. `60` für eine Stunde). `0` deaktiviert das automatische Neuladen.
+  - Das Intervall in Minuten, nach dem alle Seiten automatisch neu geladen werden.
   - **Standard**: `0`
 
 - **`zoom_factor`**
   - Skaliert den Inhalt der Webseiten.
-  - **Werte**: Gleitkommazahl (z.B. `1.0` = 100%, `1.5` = 150%, `0.8` = 80%).
   - **Standard**: `1.0`
 
 - **`screen`**
-  - Der Index des Bildschirms, auf dem die Anwendung im Vollbildmodus angezeigt werden soll. `0` ist normalerweise der primäre Bildschirm.
-  - **Werte**: `0`, `1`, `2`, ...
+  - Der Index des Bildschirms für den Vollbildmodus.
   - **Standard**: `0`
-
-- **`cachedir`**
-  - Das Verzeichnis für den Browser-Cache, relativ zum Anwendungsverzeichnis.
-  - **Standard**: `_cache/`
 
 ---
 
@@ -117,9 +118,27 @@ Allgemeine Einstellungen für die Anwendung.
 Definiert die anzuzeigenden Autodarts-Boards.
 
 - **`board1_id`**
-  - Die UUID des ersten Boards. Sie finden diese in der URL Ihres Boards (z.B. `.../boards/HIER-STEHT-DIE-UUID/follow`).
+  - Die UUID des ersten Boards.
 - **`board2_id`**
-  - Die UUID des zweiten Boards (wird nur verwendet, wenn `browsers = 2`).
+  - Die UUID des zweiten Boards (nur bei `browsers = 2`).
+
+---
+
+### `[security]`
+Einstellungen für die Sicherheit des Web-Interfaces.
+
+- **`enable_auth`**
+  - Aktiviert den Passwortschutz für das Web-Interface.
+  - **Werte**: `true` oder `false`
+  - **Standard**: `false`
+
+- **`username`**
+  - Der Benutzername für den Login.
+  - **Standard**: `admin`
+
+- **`password_hash`**
+  - Der sicher gehashte Passwort-String.
+  - *Hinweis: Bitte setzen Sie das Passwort über das Web-Interface. Das manuelle Eintragen von Klartext-Passwörtern hier funktioniert nicht.*
 
 ---
 
@@ -127,10 +146,8 @@ Definiert die anzuzeigenden Autodarts-Boards.
 Einstellungen für das benutzerdefinierte CSS-Styling.
 
 - **`activate`**
-  - Aktiviert oder deaktiviert das Injizieren der `style.css`-Datei.
-  - **Werte**: `true` oder `false`
+  - Aktiviert das Injizieren der `style.css`-Datei.
   - **Standard**: `false`
-  - *Hinweis:* Die `style.css` kann über das Web-Interface im "CSS Editor" live bearbeitet und als Theme gespeichert/geladen werden.
 
 ---
 
@@ -138,42 +155,34 @@ Einstellungen für das benutzerdefinierte CSS-Styling.
 Einstellungen für die Anzeige eines Logos.
 
 - **`enable`**
-  - Aktiviert oder deaktiviert die Logo-Anzeige.
-  - **Werte**: `true` oder `false`
+  - Aktiviert die Logo-Anzeige.
   - **Standard**: `false`
 
 - **`local`**
-  - Legt fest, ob das Logo von einem lokalen Pfad geladen wird. Wenn `true`, startet die Anwendung einen kleinen Webserver.
-  - **Werte**: `true` oder `false`
+  - Wenn `true`, startet die Anwendung einen internen Webserver (auf einem zufälligen freien Port), um lokale Bilder bereitzustellen.
   - **Standard**: `false`
 
 - **`logo`**
-  - Die Quelle des Logos.
-  - Wenn `local = true`: Der relative Pfad zur Bilddatei (z.B. `scripts/logo.png`).
-  - Wenn `local = false`: Eine vollständige URL zu einem online gehosteten Bild.
+  - URL oder relativer Pfad zum Logo.
   - **Standard**: `""`
 
 ---
 
 ### `[autologin]`
-Einstellungen für den automatischen Login. Notwendig, wenn die Boards nicht öffentlich sind.
+Einstellungen für den automatischen Login.
 
 - **`enable`**
-  - Aktiviert oder deaktiviert den automatischen Login.
-  - **Werte**: `true` oder `false`
+  - Aktiviert den automatischen Login.
   - **Standard**: `false`
 
 - **`username`**
-  - Der Benutzername (E-Mail) für Ihren Autodarts-Account.
-  - **Standard**: `""`
+  - Autodarts Benutzername (E-Mail).
 
-- **`passwort`**
-  - Das Passwort für Ihren Autodarts-Account.
-  - **Standard**: `""`
+- **`password`** (früher `passwort`)
+  - Autodarts Passwort.
 
-- **`versuche`**
-  - Die maximale Anzahl an Login-Versuchen pro Seite.
-  - **Werte**: Eine ganze Zahl.
+- **`attempts`** (früher `versuche`)
+  - Maximale Login-Versuche.
   - **Standard**: `3`
 
 ## Autostart (Beispiel für Linux)

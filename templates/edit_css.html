@@ -16,17 +16,42 @@
                         <label for="selected_theme" class="col-form-label">Vorhandene Themes:</label>
                     </div>
                     <div class="col-auto flex-grow-1">
-                        <form method="POST" class="d-flex gap-2">
+                        <form method="POST" class="d-flex gap-2" id="theme_management_form">
                             <select name="selected_theme" id="selected_theme" class="form-select">
                                 {% for theme in themes %}
                                     <option value="{{ theme }}">{{ theme }}</option>
                                 {% endfor %}
                             </select>
+                            <input type="hidden" name="new_theme_name" id="new_theme_name">
                             <button type="submit" name="action" value="load_theme" class="btn btn-outline-primary" {% if not themes %}disabled{% endif %}>Laden</button>
+                            <button type="button" class="btn btn-outline-secondary" onclick="renameTheme()" {% if not themes %}disabled{% endif %}>Umbenennen</button>
                             <button type="submit" name="action" value="delete_theme" class="btn btn-outline-danger" onclick="return confirm('Theme wirklich löschen?');" {% if not themes %}disabled{% endif %}>Löschen</button>
                         </form>
                     </div>
                 </div>
+                
+                <script>
+                function renameTheme() {
+                    const select = document.getElementById('selected_theme');
+                    const currentName = select.value;
+                    if (!currentName) return;
+                    
+                    const newName = prompt("Neuer Name für Theme '" + currentName + "':", currentName);
+                    if (newName && newName !== currentName) {
+                        document.getElementById('new_theme_name').value = newName;
+                        const form = document.getElementById('theme_management_form');
+                        
+                        // Create hidden input for action
+                        const actionInput = document.createElement('input');
+                        actionInput.type = 'hidden';
+                        actionInput.name = 'action';
+                        actionInput.value = 'rename_theme';
+                        form.appendChild(actionInput);
+                        
+                        form.submit();
+                    }
+                }
+                </script>
                 
                 <hr>
 

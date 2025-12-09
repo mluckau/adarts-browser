@@ -185,6 +185,30 @@ def delete_theme(name):
     except Exception:
         return False
 
+def rename_theme(old_name, new_name):
+    if not THEMES_DIR.exists():
+        return False
+    
+    # Sanitize new name
+    safe_new_name = "".join([c for c in new_name if c.isalpha() or c.isdigit() or c in (' ', '-', '_')]).strip()
+    if not safe_new_name:
+        return False
+        
+    old_path = THEMES_DIR / f"{old_name}.css"
+    new_path = THEMES_DIR / f"{safe_new_name}.css"
+    
+    if not old_path.exists():
+        return False
+        
+    if new_path.exists():
+        return False # Target already exists
+        
+    try:
+        old_path.rename(new_path)
+        return True
+    except Exception:
+        return False
+
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def index():
@@ -308,6 +332,14 @@ def edit_css():
                 flash(f'Theme "{theme_name}" gelöscht.', 'info')
             else:
                 flash('Fehler beim Löschen des Themes.', 'danger')
+
+        elif action == 'rename_theme':
+            old_name = request.form.get('selected_theme')
+            new_name = request.form.get('new_theme_name')
+            if rename_theme(old_name, new_name):
+                flash(f'Theme umbenannt in "{new_name}".', 'success')
+            else:
+                flash('Fehler beim Umbenennen (Name ungültig oder existiert bereits?).', 'danger')
 
         return redirect(url_for('edit_css'))
 

@@ -5,6 +5,9 @@ Alle Änderungen am Projekt werden in dieser Datei dokumentiert.
 ## [Unreleased] - 2025-12-08
 
 ### Hinzugefügt
+- **Autologin-Sicherheit**: Das Autodarts-Passwort wird nun lokal verschlüsselt (AES) in der `config.ini` gespeichert, wenn es über das Web-Interface gesetzt wird.
+- **Logging**: Logs werden nun persistent im Ordner `logs/` (statt `/tmp`) gespeichert und sind somit auch nach einem Reboot verfügbar.
+- **Code-Qualität**: Umfangreiches Refactoring und Zentralisierung der Konfigurationslogik.
 - **Theme-Verwaltung**: Möglichkeit zum Umbenennen von gespeicherten Themes hinzugefügt.
 - **Geräte-Identifikation**:
   - Automatische Generierung einer eindeutigen `device_id` beim ersten Start.

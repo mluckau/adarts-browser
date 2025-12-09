@@ -115,7 +115,7 @@ Hidden=false
 
 Startet die Anwendung nicht, prüfen Sie das Logfile:
 ```bash
-cat /tmp/adarts-browser.log
+cat logs/adarts-browser.log
 ```
 
 ## Mauszeiger ausblenden

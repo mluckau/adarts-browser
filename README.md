@@ -180,6 +180,7 @@ Einstellungen für den automatischen Login.
 
 - **`password`** (früher `passwort`)
   - Autodarts Passwort.
+  - *Hinweis:* Wenn das Passwort über das Web-Interface eingegeben wird, wird es verschlüsselt gespeichert. Sie können es auch als Klartext hier eintragen (nicht empfohlen), die Anwendung verschlüsselt es dann beim nächsten Zugriff über das Web-Interface automatisch.
 
 - **`attempts`** (früher `versuche`)
   - Maximale Login-Versuche.
@@ -212,7 +213,7 @@ Um die Anwendung automatisch beim Systemstart auszuführen, liegt dem Repository
     *Ersetzen Sie `/home/pi/adarts-browser/start.sh` durch den tatsächlichen absoluten Pfad zu Ihrer `start.sh`.*
 
 **Tipp zur Fehlersuche:**
-Das Skript schreibt Log-Ausgaben nach `/tmp/adarts-browser.log`. Sollte die Anwendung nicht starten, prüfen Sie diese Datei:
+Das Skript schreibt Log-Ausgaben in den Unterordner `logs/`. Sollte die Anwendung nicht starten, prüfen Sie diese Datei:
 ```bash
-cat /tmp/adarts-browser.log
+cat logs/adarts-browser.log
 ```

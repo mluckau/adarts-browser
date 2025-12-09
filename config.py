@@ -2,7 +2,7 @@ import configparser
 import os
 import uuid
 from pathlib import Path
-from utils import CONFIG_PATH
+from utils import CONFIG_PATH, decrypt_value
 
 class AppConfig:
     def __init__(self, config_path=CONFIG_PATH):
@@ -97,7 +97,9 @@ class AppConfig:
         # If not found or empty, try legacy 'passwort'
         if not val:
             val = self._config.get("autologin", "passwort", fallback="")
-        return val
+        
+        # Decrypt the value (returns plaintext if it wasn't encrypted)
+        return decrypt_value(val)
 
     @property
     def refresh_interval_min(self):

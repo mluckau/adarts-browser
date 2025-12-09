@@ -19,3 +19,4 @@ config_example.ini
 .restart_trigger
 current_packages.txt
 logs
+.secret.key

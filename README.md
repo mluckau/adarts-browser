@@ -168,9 +168,10 @@ Einstellungen für die Anzeige eines Logos.
   - Wenn `local = false`: Eine vollständige URL zu einem online gehosteten Bild.
   - **Standard**: `""`
 
-- **`auto_coords_mode`**
-  - Wenn `true`, versucht der Browser automatisch, den "Coords mode" Button auf der Autodarts-Seite zu klicken (nützlich für spezielle Anzeigen).
-  - **Standard**: `false`
+- **`view_mode`**
+  - Wählt automatisch einen Ansichtsmodus auf der Autodarts-Seite.
+  - **Werte**: `none`, `Segments mode`, `Coords mode`, `Live mode`
+  - **Standard**: `none`
 
 ---
 

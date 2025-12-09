@@ -5,6 +5,9 @@ Alle Änderungen am Projekt werden in dieser Datei dokumentiert.
 ## [Unreleased] - 2025-12-08
 
 ### Hinzugefügt
+- **Geräte-Identifikation**:
+  - Automatische Generierung einer eindeutigen `device_id` beim ersten Start.
+  - Option zum Festlegen eines `device_name` (z.B. "Keller"), der im Web-Interface angezeigt wird.
 - **Konfiguration**: Vereinheitlichung der Konfigurationsschlüssel für Autologin von Deutsch auf Englisch (`passwort` -> `password`, `versuche` -> `attempts`) mit Abwärtskompatibilität.
 - **Dynamischer HTTP-Server Port**: Der lokale HTTP-Server (für Logos) wählt nun automatisch einen freien Port, statt einen festen Port zu verwenden.
 - **Sicherheit**:

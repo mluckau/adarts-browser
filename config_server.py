@@ -19,6 +19,12 @@ RELOAD_TRIGGER_PATH = APP_DIR / ".reload_trigger" # New reload trigger
 app = Flask(__name__)
 app.secret_key = 'adarts-browser-secret-key'  # Needed for flash messages
 
+@app.context_processor
+def inject_device_info():
+    config = read_config()
+    name = config.get("main", "device_name", fallback="")
+    return dict(global_device_name=name)
+
 def login_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
@@ -60,6 +66,7 @@ def logout():
 
 class ConfigForm(Form):
     # Main Section
+    device_name = StringField('Gerätename (optional)')
     browsers = IntegerField('Anzahl Browser (1 oder 2)', [validators.NumberRange(min=1, max=2)])
     refresh_interval_min = IntegerField('Auto-Refresh Intervall (Minuten, 0 = aus)')
     zoom_factor = FloatField('Zoom-Faktor (z.B. 1.0 = 100%, 1.2 = 120%)')
@@ -187,6 +194,7 @@ def index():
     if request.method == 'POST' and form.validate():
         # Update config object from form data
         if not config.has_section('main'): config.add_section('main')
+        config.set('main', 'device_name', form.device_name.data)
         config.set('main', 'browsers', str(form.browsers.data))
         config.set('main', 'refresh_interval_min', str(form.refresh_interval_min.data))
         config.set('main', 'zoom_factor', str(form.zoom_factor.data))
@@ -227,6 +235,7 @@ def index():
 
     # Populate form from config (GET request)
     try:
+        form.device_name.data = config.get('main', 'device_name', fallback='')
         form.browsers.data = config.getint('main', 'browsers', fallback=1)
         form.refresh_interval_min.data = config.getint('main', 'refresh_interval_min', fallback=0)
         form.zoom_factor.data = config.getfloat('main', 'zoom_factor', fallback=1.0)
@@ -254,7 +263,12 @@ def index():
     except Exception as e:
         flash(f'Fehler beim Laden der Konfiguration: {e}', 'danger')
 
-    return render_template('config.html', form=form)
+    device_info = {
+        'name': config.get('main', 'device_name', fallback=''),
+        'id': config.get('main', 'device_id', fallback='Unknown')
+    }
+
+    return render_template('config.html', form=form, device_info=device_info)
 
 @app.route('/css', methods=['GET', 'POST'])
 @login_required

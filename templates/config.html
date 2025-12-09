@@ -21,15 +21,24 @@
         
         <form method="POST">
             
-            <!-- Main Settings -->
-                                <div class="card">
-                                    <div class="section-header">Allgemeine Einstellungen</div>
-                                    <div class="card-body">
-                                        <div class="mb-3">
-                                            <label for="browsers" class="form-label">{{ form.browsers.label }}</label>
-                                            {{ form.browsers(class="form-control", type="number", min=1, max=2) }}
-                                        </div>
-                                        <div class="mb-3">
+                        <!-- Main Settings -->
+                        <div class="card">
+                            <div class="section-header">Allgemeine Einstellungen</div>
+                            <div class="card-body">
+                                <div class="row mb-3">
+                                    <div class="col-md-8">
+                                        <label for="device_name" class="form-label">{{ form.device_name.label }}</label>
+                                        {{ form.device_name(class="form-control", placeholder="z.B. Board Keller") }}
+                                    </div>
+                                    <div class="col-md-4">
+                                        <label class="form-label">Device ID (automatisch)</label>
+                                        <input type="text" class="form-control" value="{{ device_info.id }}" readonly disabled>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="browsers" class="form-label">{{ form.browsers.label }}</label>
+                                    {{ form.browsers(class="form-control", type="number", min=1, max=2) }}
+                                </div>                                        <div class="mb-3">
                                             <label for="refresh_interval_min" class="form-label">{{ form.refresh_interval_min.label }}</label>
                                             {{ form.refresh_interval_min(class="form-control", type="number") }}
                                         </div>

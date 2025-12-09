@@ -2,6 +2,8 @@ import configparser
 import os
 from pathlib import Path
 
+import uuid
+
 class AppConfig:
     def __init__(self, config_path):
         self._config = configparser.ConfigParser()
@@ -10,6 +12,26 @@ class AppConfig:
         if self._config_path.is_file():
             self._config.read(self._config_path)
 
+        # Ensure device_id exists
+        if not self._config.has_section("main"):
+            self._config.add_section("main")
+        
+        if not self._config.has_option("main", "device_id"):
+            # Generate a new UUID if not present
+            new_id = str(uuid.uuid4())
+            self._config.set("main", "device_id", new_id)
+            # Save immediately so the ID persists
+            with open(self._config_path, 'w') as f:
+                self._config.write(f)
+
+    @property
+    def device_id(self):
+        return self._config.get("main", "device_id")
+
+    @property
+    def device_name(self):
+        return self._config.get("main", "device_name", fallback="")
+    
     def get_board_url(self, board_number):
         try:
             board_id = self._config.get("boards", f"board{board_number}_id")

@@ -9,7 +9,8 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from config import get_config
 from utils import (
     APP_DIR, CSS_PATH, THEMES_DIR, LOG_PATH,
-    trigger_restart, trigger_reload, request_clear_cache, encrypt_value
+    trigger_restart, trigger_reload, request_clear_cache, encrypt_value,
+    git_check_update, git_perform_update
 )
 
 app = Flask(__name__)
@@ -93,6 +94,10 @@ class ConfigForm(Form):
     security_enable = BooleanField('Passwortschutz für Konfiguration aktivieren')
     security_username = StringField('Benutzername (Standard: admin)')
     security_new_password = PasswordField('Neues Passwort setzen (leer lassen zum Beibehalten)')
+    
+    # Advanced / QR
+    show_qr = BooleanField('QR-Code beim Start anzeigen')
+    qr_duration = IntegerField('Anzeigedauer des QR-Codes (Sekunden)')
 
 class CSSForm(Form):
     css_content = TextAreaField('CSS Inhalt')
@@ -224,6 +229,10 @@ def index():
         if new_pass:
             hashed_pw = generate_password_hash(new_pass)
             config.set('security', 'password_hash', hashed_pw)
+            
+        # Advanced / QR
+        config.set('main', 'show_qr', str(form.show_qr.data).lower())
+        config.set('main', 'qr_duration', form.qr_duration.data)
 
         config.save()
         trigger_restart()
@@ -238,6 +247,10 @@ def index():
         form.refresh_interval_min.data = config.getint('main', 'refresh_interval_min', fallback=0)
         form.zoom_factor.data = config.getfloat('main', 'zoom_factor', fallback=1.0)
         form.screen.data = config.getint('main', 'screen', fallback=0)
+        
+        # QR Defaults
+        form.show_qr.data = config.getboolean('main', 'show_qr', fallback=True)
+        form.qr_duration.data = config.getint('main', 'qr_duration', fallback=15)
         
         form.board1_id.data = config.get('boards', 'board1_id', fallback='')
         form.board2_id.data = config.get('boards', 'board2_id', fallback='')
@@ -368,6 +381,36 @@ def view_logs():
                 "Dies ist normal, wenn die Anwendung nicht über das Startskript gestartet wurde."]
     
     return render_template('logs.html', logs=logs)
+
+
+@app.route('/check_update', methods=['POST'])
+@login_required
+def check_update():
+    available, msg = git_check_update()
+    if available:
+        flash(f"{msg}", 'info')
+        # Store update availability in session to show update button
+        session['update_available'] = True
+    else:
+        flash(f"{msg}", 'success')
+        session.pop('update_available', None)
+    
+    return redirect(url_for('index'))
+
+@app.route('/perform_update', methods=['POST'])
+@login_required
+def perform_update():
+    success, msg = git_perform_update()
+    if success:
+        flash("Update erfolgreich installiert! Anwendung wird neu gestartet...", 'success')
+        session.pop('update_available', None)
+        # Trigger restart slightly delayed to allow flash message to be rendered? 
+        # Actually restart will kill server, so maybe just trigger it and hope browser reconnects.
+        trigger_restart()
+    else:
+        flash(f"Fehler beim Update: {msg}", 'danger')
+        
+    return redirect(url_for('index'))
 
 
 def start_server(host='0.0.0.0', port=5000):

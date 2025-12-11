@@ -65,7 +65,9 @@ class AppConfig:
 
     def get_board_url(self, board_number):
         try:
-            board_id = self._config.get("boards", f"board{board_number}_id")
+            board_id = self._config.get("boards", f"board{board_number}_id", fallback="").strip()
+            if not board_id:
+                return None
             return f"https://play.autodarts.io/boards/{board_id}/follow"
         except (configparser.NoSectionError, configparser.NoOptionError):
             return None
@@ -163,6 +165,14 @@ class AppConfig:
     @property
     def web_password_hash(self):
         return self._config.get("security", "password_hash", fallback="")
+
+    @property
+    def show_qr_on_startup(self):
+        return self._config.getboolean("main", "show_qr", fallback=True)
+
+    @property
+    def qr_show_duration(self):
+        return self._config.getint("main", "qr_duration", fallback=15)
     
     @property
     def view_mode(self):

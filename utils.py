@@ -1,6 +1,11 @@
 import os
 import time
 import threading
+import socket
+import netifaces
+import qrcode
+import subprocess # Hinzugefügt
+from io import BytesIO
 from pathlib import Path
 from cryptography.fernet import Fernet, InvalidToken
 
@@ -24,6 +29,104 @@ LOG_PATH = LOG_DIR / "adarts-browser.log"
 
 if not LOG_DIR.exists():
     LOG_DIR.mkdir()
+
+# --- Network & QR Helpers ---
+def get_local_ip_address():
+    """
+    Attempts to find the primary local IP address of the device.
+    Prioritizes non-localhost, non-loopback IPv4 addresses.
+    """
+    try:
+        # Strategy 1: Connect to an external server (Google DNS) - most reliable
+        # We don't actually send data, just checking what IP would be used
+        s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.settimeout(0)
+        try:
+            s.connect(('8.8.8.8', 1))
+            ip = s.getsockname()[0]
+            return ip
+        except Exception:
+            pass
+        finally:
+            s.close()
+
+        # Strategy 2: Iterate interfaces using netifaces
+        for interface in netifaces.interfaces():
+            if interface == 'lo':
+                continue
+            addrs = netifaces.ifaddresses(interface)
+            if netifaces.AF_INET in addrs:
+                for addr_info in addrs[netifaces.AF_INET]:
+                    ip = addr_info['addr']
+                    if not ip.startswith('127.'):
+                        return ip
+    except Exception:
+        pass
+    
+    return "127.0.0.1"
+
+def generate_qr_code_image(data):
+    """
+    Generates a QR code for the given data and returns it as a bytes object (PNG).
+    """
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=2,
+    )
+    qr.add_data(data)
+    qr.make(fit=True)
+
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    img_buffer = BytesIO()
+    img.save(img_buffer, format="PNG")
+    return img_buffer.getvalue()
+
+# --- Git Update Helpers ---
+def git_check_update():
+    """
+    Checks for updates by fetching origin and comparing HEAD with origin/main.
+    Returns: (update_available: bool, message: str)
+    """
+    try:
+        # 1. Fetch changes
+        subprocess.check_call(['git', 'fetch'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        
+        # 2. Get hash of HEAD
+        local_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode('ascii').strip()
+        
+        # 3. Get hash of origin/main (assuming main is the branch)
+        remote_hash = subprocess.check_output(['git', 'rev-parse', 'origin/main']).decode('ascii').strip()
+        
+        if local_hash != remote_hash:
+            # Check if we are behind
+            # "git rev-list --count HEAD..origin/main" returns number of commits we are behind
+            behind_count = subprocess.check_output(['git', 'rev-list', '--count', 'HEAD..origin/main']).decode('ascii').strip()
+            if int(behind_count) > 0:
+                return True, f"Update verfügbar ({behind_count} Commits hinter origin/main)"
+            else:
+                return False, "Lokale Version ist neuer oder divergiert."
+        
+        return False, "System ist auf dem neuesten Stand."
+        
+    except Exception as e:
+        return False, f"Fehler bei Update-Prüfung: {e}"
+
+def git_perform_update():
+    """
+    Performs a git pull.
+    Returns: (success: bool, message: str)
+    """
+    try:
+        # git pull
+        output = subprocess.check_output(['git', 'pull'], stderr=subprocess.STDOUT).decode('utf-8')
+        return True, f"Update erfolgreich!\n{output}"
+    except subprocess.CalledProcessError as e:
+        return False, f"Update fehlgeschlagen:\n{e.output.decode('utf-8')}"
+    except Exception as e:
+        return False, f"Unerwarteter Fehler: {e}"
 
 # --- Encryption Helpers ---
 def load_key():

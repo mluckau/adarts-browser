@@ -4,10 +4,17 @@ Alle Änderungen am Projekt werden in dieser Datei dokumentiert.
 
 ## [0.2.1] - 2025-12-11
 
+## [0.2.1] - 2025-12-11
+
 ### Hinzugefügt
-- **Erweiterte Versionierung**: Das Projekt nutzt nun `git describe` zur automatischen Ermittlung der Version basierend auf Git-Tags (SemVer).
-- **UI-Verbesserung**: Versionsnummer wird nun auch in der Fußzeile der Weboberfläche angezeigt.
-- **Transparenz**: Die angezeigte Version enthält nun Build-Informationen (z.B. `v0.2.0-2-g958dc81`), um den exakten Softwarestand zu identifizieren.
+- **Erweiterte Versionierung**: Automatische Ermittlung der Version basierend auf Git-Tags (SemVer) inkl. Anzeige in der Web-UI.
+- **QR-Code Connect**: 
+  - Automatisches Overlay mit QR-Code zum Web-Interface beim Start (konfigurierbar).
+  - Permanenter QR-Code im "Setup-Modus", wenn noch keine Board-ID konfiguriert ist.
+- **In-App Update**: Möglichkeit, Updates via Git direkt über das Web-Interface zu prüfen und zu installieren.
+- **Dynamische Setup-Seite**: Die "Konfiguration erforderlich"-Seite zeigt nun automatisch die korrekte IP-Adresse des Geräts an.
+- **Responsive Web-UI**: Optimierte Darstellung der Konfigurationsseite und Navigationsleiste auf mobilen Geräten (Smartphone).
+- **Backend**: Neue Abhängigkeiten `qrcode` und `netifaces` für Netzwerk- und QR-Funktionen.
 
 ## [0.2.0] - 2025-12-09
 

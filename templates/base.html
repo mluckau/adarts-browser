@@ -6,7 +6,7 @@
     <title>{% block title %}Autodarts Browser{% endblock %}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #f8f9fa; padding-top: 70px; }
+        body { background-color: #f8f9fa; padding-top: 80px; }
         .card { margin-bottom: 20px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .section-header { background-color: #e9ecef; padding: 10px 15px; font-weight: bold; border-bottom: 1px solid #dee2e6; }
         textarea { font-family: monospace; }
@@ -18,7 +18,7 @@
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark fixed-top">
       <div class="container">
         <a class="navbar-brand" href="{{ url_for('index') }}">
-            Autodarts Browser <small class="text-white-50">v{{ global_version }}</small>
+            Autodarts Browser <small class="text-white-50 d-none d-md-inline">v{{ global_version }}</small>
             {% if global_device_name %}
             <span class="badge bg-secondary ms-2">{{ global_device_name }}</span>
             {% endif %}

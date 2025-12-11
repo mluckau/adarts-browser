@@ -111,8 +111,12 @@
                                     </form>
                                 {% else %}
                                     <span class="badge bg-success">Installiert {% if theme.local_version %}(v{{ theme.local_version }}){% endif %}</span>
-                                    <!-- Optional: Re-install button if needed -->
                                 {% endif %}
+                                <form method="POST" class="d-inline ms-2" onsubmit="return confirm('Theme \'{{ theme.name }}\' wirklich deinstallieren?');">
+                                    <input type="hidden" name="action" value="delete_theme">
+                                    <input type="hidden" name="selected_theme" value="{{ theme.name }}">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Deinstallieren">🗑️</button>
+                                </form>
                             {% else %}
                                 <form method="POST" class="d-inline">
                                     <input type="hidden" name="action" value="install_preset">

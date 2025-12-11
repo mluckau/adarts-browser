@@ -110,15 +110,33 @@ def git_check_update():
         except subprocess.CalledProcessError:
              return False, f"Remote-Branch '{remote_ref}' nicht gefunden."
         
+        # Check for uncommitted changes
+        is_dirty = False
+        try:
+            status = subprocess.check_output(['git', 'status', '--porcelain']).decode('ascii').strip()
+            if status:
+                is_dirty = True
+        except Exception:
+            pass
+
         if local_hash != remote_hash:
             # Check if we are behind
             # "git rev-list --count HEAD..origin/branch" returns number of commits we are behind
             behind_count = subprocess.check_output(['git', 'rev-list', '--count', f'HEAD..{remote_ref}']).decode('ascii').strip()
             if int(behind_count) > 0:
-                return True, f"Update verfügbar ({behind_count} Commits hinter {remote_ref})"
+                msg = f"Update verfügbar ({behind_count} Commits hinter {remote_ref})"
+                if is_dirty:
+                    msg += " [Achtung: Lokale Änderungen vorhanden!]"
+                return True, msg
             else:
-                return False, "Lokale Version ist neuer oder divergiert."
+                msg = "Lokale Version ist neuer oder divergiert."
+                if is_dirty:
+                    msg += " (Lokale Änderungen)"
+                return False, msg
         
+        if is_dirty:
+             return False, "System ist aktuell (aber lokale Änderungen vorhanden)."
+
         return False, "System ist auf dem neuesten Stand."
         
     except Exception as e:

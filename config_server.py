@@ -1,5 +1,6 @@
 import threading
 import time
+from datetime import timedelta
 from functools import wraps
 from flask import Flask, render_template, request, flash, redirect, url_for, session
 from wtforms import Form, StringField, IntegerField, BooleanField, PasswordField, TextAreaField, FloatField, validators, SelectField
@@ -15,6 +16,7 @@ from utils import (
 
 app = Flask(__name__)
 app.secret_key = 'adarts-browser-secret-key'  # Needed for flash messages
+app.permanent_session_lifetime = timedelta(days=31) # Valid for 31 days if remember me is checked
 
 @app.context_processor
 def inject_device_info():
@@ -36,6 +38,7 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+        remember = request.form.get('remember')
         
         config = get_config()
         # Direct access to config properties for security check
@@ -44,6 +47,11 @@ def login():
         
         if username == conf_user and check_password_hash(conf_hash, password):
             session['logged_in'] = True
+            if remember:
+                session.permanent = True
+            else:
+                session.permanent = False
+                
             flash('Erfolgreich eingeloggt.', 'success')
             next_url = request.args.get('next')
             return redirect(next_url or url_for('index'))

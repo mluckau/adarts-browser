@@ -1,10 +1,34 @@
 import configparser
 import os
 import uuid
+import subprocess
 from pathlib import Path
 from utils import CONFIG_PATH, decrypt_value
 
 __version__ = "0.2.0"
+
+def get_version_from_git():
+    """
+    Attempts to determine the version using 'git describe'.
+    Returns the version string (e.g., 'v0.2.1-4-g9a2b3c') or None if it fails.
+    """
+    try:
+        # Only run if we are in a git repository
+        if not Path(".git").exists():
+            return None
+            
+        # git describe --tags --always --dirty
+        # --tags: Use any tag as a reference
+        # --always: Fallback to commit hash if no tags found
+        # --dirty: Append '-dirty' if there are uncommitted changes
+        version = subprocess.check_output(
+            ['git', 'describe', '--tags', '--always', '--dirty'], 
+            stderr=subprocess.DEVNULL
+        ).decode('ascii').strip()
+        
+        return version
+    except Exception:
+        return None
 
 class AppConfig:
     def __init__(self, config_path=CONFIG_PATH):
@@ -56,6 +80,12 @@ class AppConfig:
 
     @property
     def version(self):
+        # 1. Try to get dynamic version from git (most accurate)
+        git_ver = get_version_from_git()
+        if git_ver:
+            return git_ver
+            
+        # 2. Fallback to hardcoded version
         return __version__
 
     @property

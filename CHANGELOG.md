@@ -2,6 +2,13 @@
 
 Alle Änderungen am Projekt werden in dieser Datei dokumentiert.
 
+## [0.2.1] - 2025-12-11
+
+### Hinzugefügt
+- **Erweiterte Versionierung**: Das Projekt nutzt nun `git describe` zur automatischen Ermittlung der Version basierend auf Git-Tags (SemVer).
+- **UI-Verbesserung**: Versionsnummer wird nun auch in der Fußzeile der Weboberfläche angezeigt.
+- **Transparenz**: Die angezeigte Version enthält nun Build-Informationen (z.B. `v0.2.0-2-g958dc81`), um den exakten Softwarestand zu identifizieren.
+
 ## [0.2.0] - 2025-12-09
 
 ### Hinzugefügt

@@ -7,6 +7,7 @@ import qrcode
 import subprocess
 import json
 import urllib.request
+from urllib.parse import quote
 from io import BytesIO
 from pathlib import Path
 from cryptography.fernet import Fernet, InvalidToken
@@ -103,7 +104,9 @@ def fetch_available_themes():
 
 def fetch_theme_content(filename):
     """Fetches the content of a specific css file from the online repository."""
-    url = THEME_REPO_BASE_URL + filename
+    # Ensure filename is URL encoded (handles spaces etc.)
+    encoded_filename = quote(filename)
+    url = THEME_REPO_BASE_URL + encoded_filename
     try:
         with urllib.request.urlopen(url, timeout=5) as response:
             return response.read().decode('utf-8')

@@ -92,7 +92,8 @@ def generate_qr_code_image(data):
 # --- Theme Repository Helpers ---
 def fetch_available_themes():
     """Fetches the list of themes from the online repository (themes.json)."""
-    url = THEME_REPO_BASE_URL + "themes.json"
+    # Add timestamp to bypass caching
+    url = THEME_REPO_BASE_URL + f"themes.json?v={int(time.time())}"
     try:
         with urllib.request.urlopen(url, timeout=3) as response:
             data = json.loads(response.read().decode('utf-8'))

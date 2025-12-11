@@ -26,7 +26,7 @@ def get_version_from_git():
             stderr=subprocess.DEVNULL
         ).decode('ascii').strip()
         
-        return version
+        return version.lstrip('v')
     except Exception:
         return None
 

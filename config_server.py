@@ -16,7 +16,8 @@ from config import get_config
 from utils import (
     APP_DIR, CSS_PATH, THEMES_DIR, LOG_PATH, CONFIG_PATH,
     trigger_restart, trigger_reload, request_clear_cache, encrypt_value,
-    git_check_update, git_perform_update
+    git_check_update, git_perform_update,
+    fetch_available_themes, fetch_theme_content
 )
 
 app = Flask(__name__)
@@ -190,29 +191,6 @@ def rename_theme(old_name, new_name):
     except Exception:
         return False
 
-# --- Preset Themes (Community / Examples) ---
-PRESET_THEMES = {
-    "Dark Mode (Clean)": """
-/* Dark Mode Clean */
-body, .main-container { background-color: #121212 !important; color: #e0e0e0 !important; }
-.card { background-color: #1e1e1e !important; border-color: #333 !important; }
-/* Hide Footer */
-footer { display: none !important; }
-    """,
-    "Neon Cyberpunk": """
-/* Neon Cyberpunk */
-body { background-color: #000 !important; font-family: 'Courier New', monospace; }
-.score { color: #0f0 !important; text-shadow: 0 0 5px #0f0; }
-.turn-info { color: #f0f !important; text-shadow: 0 0 5px #f0f; }
-    """,
-    "High Contrast (TV)": """
-/* High Contrast for TV */
-* { font-weight: bold !important; }
-body { background-color: #fff !important; color: #000 !important; }
-.score { font-size: 150% !important; color: black !important; }
-    """
-}
-
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def index():
@@ -367,21 +345,27 @@ def edit_css():
 
         elif action == 'install_preset':
             preset_name = request.form.get('preset_name')
-            if preset_name in PRESET_THEMES:
-                content = PRESET_THEMES[preset_name]
-                if save_theme(preset_name, content):
-                    flash(f'Preset "{preset_name}" wurde als Theme installiert.', 'success')
+            preset_file = request.form.get('preset_file')
+            
+            if preset_name and preset_file:
+                content = fetch_theme_content(preset_file)
+                if content:
+                    if save_theme(preset_name, content):
+                        flash(f'Theme "{preset_name}" erfolgreich heruntergeladen und installiert.', 'success')
+                    else:
+                        flash('Fehler beim Speichern des heruntergeladenen Themes.', 'danger')
                 else:
-                    flash('Fehler beim Speichern des Presets.', 'danger')
+                    flash('Fehler beim Herunterladen des Themes (Verbindung oder Datei?).', 'danger')
             else:
-                flash('Unbekanntes Preset.', 'danger')
+                flash('Ungültige Preset-Daten.', 'danger')
 
         return redirect(url_for('edit_css'))
 
     # GET request
     form.css_content.data = read_css()
     themes = list_themes()
-    return render_template('edit_css.html', form=form, themes=themes, presets=PRESET_THEMES)
+    online_themes = fetch_available_themes()
+    return render_template('edit_css.html', form=form, themes=themes, presets=online_themes)
 
 
 @app.route('/restart', methods=['POST'])

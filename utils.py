@@ -4,7 +4,9 @@ import threading
 import socket
 import netifaces
 import qrcode
-import subprocess # Hinzugefügt
+import subprocess
+import json
+import urllib.request
 from io import BytesIO
 from pathlib import Path
 from cryptography.fernet import Fernet, InvalidToken
@@ -17,6 +19,8 @@ CSS_PATH = APP_DIR / "style.css"
 THEMES_DIR = APP_DIR / "themes"
 SCRIPTS_DIR = APP_DIR / "scripts"
 TEMPLATES_DIR = APP_DIR / "templates"
+
+THEME_REPO_BASE_URL = "https://raw.githubusercontent.com/mluckau/adarts-browser-themes/main/"
 
 # Trigger Files
 RESTART_TRIGGER_PATH = APP_DIR / ".restart_trigger"
@@ -83,6 +87,29 @@ def generate_qr_code_image(data):
     img_buffer = BytesIO()
     img.save(img_buffer, format="PNG")
     return img_buffer.getvalue()
+
+# --- Theme Repository Helpers ---
+def fetch_available_themes():
+    """Fetches the list of themes from the online repository (themes.json)."""
+    url = THEME_REPO_BASE_URL + "themes.json"
+    try:
+        with urllib.request.urlopen(url, timeout=3) as response:
+            data = json.loads(response.read().decode('utf-8'))
+            return data
+    except Exception as e:
+        # Return empty list on error (offline, repo not found, etc.)
+        print(f"[WARN] Failed to fetch online themes: {e}")
+        return []
+
+def fetch_theme_content(filename):
+    """Fetches the content of a specific css file from the online repository."""
+    url = THEME_REPO_BASE_URL + filename
+    try:
+        with urllib.request.urlopen(url, timeout=5) as response:
+            return response.read().decode('utf-8')
+    except Exception as e:
+        print(f"[ERROR] Failed to fetch theme content for {filename}: {e}")
+        return None
 
 # --- Git Update Helpers ---
 def git_check_update():

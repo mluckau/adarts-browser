@@ -21,3 +21,4 @@ current_packages.txt
 logs
 .secret.key
 .reload_trigger
+themes

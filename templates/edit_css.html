@@ -96,15 +96,33 @@
                     {% for theme in presets %}
                     <div class="list-group-item d-flex justify-content-between align-items-center">
                         <div>
-                            <h6 class="mb-0">{{ theme.name }}</h6>
+                            <h6 class="mb-0">{{ theme.name }} <small class="text-muted">(v{{ theme.version }})</small></h6>
                             <small class="text-muted">{{ theme.description }}</small>
                         </div>
-                        <form method="POST" class="d-inline">
-                            <input type="hidden" name="action" value="install_preset">
-                            <input type="hidden" name="preset_name" value="{{ theme.name }}">
-                            <input type="hidden" name="preset_file" value="{{ theme.file }}">
-                            <button type="submit" class="btn btn-outline-info btn-sm">⬇️ Installieren</button>
-                        </form>
+                        <div>
+                            {% if theme.is_installed %}
+                                {% if theme.update_available %}
+                                    <form method="POST" class="d-inline">
+                                        <input type="hidden" name="action" value="install_preset">
+                                        <input type="hidden" name="preset_name" value="{{ theme.name }}">
+                                        <input type="hidden" name="preset_file" value="{{ theme.file }}">
+                                        <input type="hidden" name="preset_version" value="{{ theme.version }}">
+                                        <button type="submit" class="btn btn-warning btn-sm" title="Installierte Version: {{ theme.local_version }}">🔄 Update</button>
+                                    </form>
+                                {% else %}
+                                    <span class="badge bg-success">Installiert {% if theme.local_version %}(v{{ theme.local_version }}){% endif %}</span>
+                                    <!-- Optional: Re-install button if needed -->
+                                {% endif %}
+                            {% else %}
+                                <form method="POST" class="d-inline">
+                                    <input type="hidden" name="action" value="install_preset">
+                                    <input type="hidden" name="preset_name" value="{{ theme.name }}">
+                                    <input type="hidden" name="preset_file" value="{{ theme.file }}">
+                                    <input type="hidden" name="preset_version" value="{{ theme.version }}">
+                                    <button type="submit" class="btn btn-outline-info btn-sm">⬇️ Installieren</button>
+                                </form>
+                            {% endif %}
+                        </div>
                     </div>
                     {% else %}
                     <div class="alert alert-warning">

@@ -17,7 +17,7 @@ from utils import (
     APP_DIR, CSS_PATH, THEMES_DIR, LOG_PATH, CONFIG_PATH,
     trigger_restart, trigger_reload, request_clear_cache, encrypt_value,
     git_check_update, git_perform_update,
-    fetch_available_themes, fetch_theme_content
+    fetch_available_themes, fetch_theme_content, get_local_theme_version
 )
 
 app = Flask(__name__)
@@ -133,6 +133,9 @@ def write_css(content):
     except Exception:
         return False
 
+def _sanitize_theme_name(name):
+    return "".join([c for c in name if c.isalpha() or c.isdigit() or c in (' ', '-', '_')]).strip()
+
 # --- Theme Helper Functions ---
 def list_themes():
     if not THEMES_DIR.exists():
@@ -142,8 +145,8 @@ def list_themes():
 def save_theme(name, content):
     if not THEMES_DIR.exists():
         THEMES_DIR.mkdir(exist_ok=True)
-    # Sanitize filename
-    safe_name = "".join([c for c in name if c.isalpha() or c.isdigit() or c in (' ', '-', '_')]).strip()
+    
+    safe_name = _sanitize_theme_name(name)
     if not safe_name:
         return False
     try:
@@ -171,8 +174,7 @@ def rename_theme(old_name, new_name):
     if not THEMES_DIR.exists():
         return False
     
-    # Sanitize new name
-    safe_new_name = "".join([c for c in new_name if c.isalpha() or c.isdigit() or c in (' ', '-', '_')]).strip()
+    safe_new_name = _sanitize_theme_name(new_name)
     if not safe_new_name:
         return False
         
@@ -346,14 +348,19 @@ def edit_css():
         elif action == 'install_preset':
             preset_name = request.form.get('preset_name')
             preset_file = request.form.get('preset_file')
+            preset_version = request.form.get('preset_version') # Get version from form
             
             if preset_name and preset_file:
                 content = fetch_theme_content(preset_file)
                 if content:
+                    # Prepend version info if available
+                    if preset_version:
+                        content = f"/* VERSION: {preset_version} */\n{content}"
+                        
                     if save_theme(preset_name, content):
-                        flash(f'Theme "{preset_name}" erfolgreich heruntergeladen und installiert.', 'success')
+                        flash(f'Theme "{preset_name}" (v{preset_version}) erfolgreich installiert.', 'success')
                     else:
-                        flash('Fehler beim Speichern des heruntergeladenen Themes.', 'danger')
+                        flash('Fehler beim Speichern des Themes.', 'danger')
                 else:
                     flash('Fehler beim Herunterladen des Themes (Verbindung oder Datei?).', 'danger')
             else:
@@ -365,6 +372,30 @@ def edit_css():
     form.css_content.data = read_css()
     themes = list_themes()
     online_themes = fetch_available_themes()
+    
+    # Process online themes to check installation status
+    for theme in online_themes:
+        # Determine local filename
+        safe_name = _sanitize_theme_name(theme.get('name', ''))
+        local_path = THEMES_DIR / f"{safe_name}.css"
+        
+        theme['is_installed'] = False
+        theme['update_available'] = False
+        theme['local_version'] = None
+        
+        if local_path.exists():
+            theme['is_installed'] = True
+            local_ver = get_local_theme_version(local_path)
+            theme['local_version'] = local_ver
+            
+            # Simple string comparison for versions (works for 1.0 vs 1.1, but ideally use semver)
+            online_ver = theme.get('version')
+            if online_ver and local_ver and online_ver > local_ver:
+                theme['update_available'] = True
+            # Also if installed but no local version found (legacy installation), treat as update available if online has version
+            if online_ver and not local_ver:
+                 theme['update_available'] = True
+
     return render_template('edit_css.html', form=form, themes=themes, presets=online_themes)
 
 

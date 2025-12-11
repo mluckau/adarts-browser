@@ -111,6 +111,25 @@ def fetch_theme_content(filename):
         print(f"[ERROR] Failed to fetch theme content for {filename}: {e}")
         return None
 
+def get_local_theme_version(file_path):
+    """
+    Reads the first line of a CSS file to extract the version.
+    Format expected: /* VERSION: 1.0 */
+    Returns string version or None.
+    """
+    try:
+        if not file_path.exists():
+            return None
+        with open(file_path, 'r', encoding='utf-8') as f:
+            first_line = f.readline().strip()
+            # Check for pattern /* VERSION: x.y */
+            if first_line.startswith('/* VERSION:') and first_line.endswith('*/'):
+                version = first_line.replace('/* VERSION:', '').replace('*/', '').strip()
+                return version
+    except Exception:
+        pass
+    return None
+
 # --- Git Update Helpers ---
 def git_check_update():
     """

@@ -177,11 +177,46 @@
                 </div>
             </div>
 
+            <!-- Maintenance & Backup -->
+            <div class="card">
+                <div class="section-header">Backup & Wiederherstellung</div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h5>Backup erstellen</h5>
+                            <p class="text-muted small">Lädt die aktuelle Konfiguration (config.ini), Styles (style.css) und alle Themes als ZIP-Datei herunter.</p>
+                            <a href="{{ url_for('create_backup') }}" class="btn btn-outline-primary w-100">
+                                📥 Backup herunterladen
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h5>Backup wiederherstellen</h5>
+                            <p class="text-muted small">Laden Sie eine zuvor erstellte ZIP-Datei hoch, um die Konfiguration wiederherzustellen. <strong>Achtung: Überschreibt aktuelle Einstellungen!</strong></p>
+                            <!-- We can't nest forms in HTML standard, so we use input+button and JS to submit to a hidden endpoint or use the main form? -->
+                            <!-- Better: standalone form logic inside this block, but we are inside the main <form>. Nested forms are invalid. -->
+                            <!-- Solution: Put the file input here, but use 'formaction' on the button? No, that submits the whole big form including file. -->
+                            <!-- Alternative: Use an external form and just button here? -->
+                            <!-- Let's use the 'form' attribute in HTML5 to link inputs to a specific form outside the main form. -->
+                            
+                            <div class="input-group">
+                                <input type="file" class="form-control" id="backup_file" name="backup_file" form="restore-form" accept=".zip" required>
+                                <button class="btn btn-outline-danger" type="button" onclick="if(confirm('Wirklich wiederherstellen? Aktuelle Einstellungen gehen verloren!')) document.getElementById('restore-form').submit();">
+                                    📤 Hochladen
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="d-grid gap-2 mb-5">
                 <button type="submit" class="btn btn-primary btn-lg">Speichern & Neustarten</button>
             </div>
 
         </form>
+        
+        <!-- External form for restore to avoid nesting -->
+        <form id="restore-form" action="{{ url_for('restore_backup') }}" method="POST" enctype="multipart/form-data" style="display: none;"></form>
     </div>
 </div>
 {% endblock %}

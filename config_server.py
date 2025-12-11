@@ -1,15 +1,20 @@
 import threading
 import time
+import zipfile
+import io
+import os
+import shutil
 from datetime import timedelta
 from functools import wraps
-from flask import Flask, render_template, request, flash, redirect, url_for, session
+from flask import Flask, render_template, request, flash, redirect, url_for, session, send_file
 from wtforms import Form, StringField, IntegerField, BooleanField, PasswordField, TextAreaField, FloatField, validators, SelectField
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 
 # Import centralized configuration and utilities
 from config import get_config
 from utils import (
-    APP_DIR, CSS_PATH, THEMES_DIR, LOG_PATH,
+    APP_DIR, CSS_PATH, THEMES_DIR, LOG_PATH, CONFIG_PATH,
     trigger_restart, trigger_reload, request_clear_cache, encrypt_value,
     git_check_update, git_perform_update
 )
@@ -185,6 +190,29 @@ def rename_theme(old_name, new_name):
     except Exception:
         return False
 
+# --- Preset Themes (Community / Examples) ---
+PRESET_THEMES = {
+    "Dark Mode (Clean)": """
+/* Dark Mode Clean */
+body, .main-container { background-color: #121212 !important; color: #e0e0e0 !important; }
+.card { background-color: #1e1e1e !important; border-color: #333 !important; }
+/* Hide Footer */
+footer { display: none !important; }
+    """,
+    "Neon Cyberpunk": """
+/* Neon Cyberpunk */
+body { background-color: #000 !important; font-family: 'Courier New', monospace; }
+.score { color: #0f0 !important; text-shadow: 0 0 5px #0f0; }
+.turn-info { color: #f0f !important; text-shadow: 0 0 5px #f0f; }
+    """,
+    "High Contrast (TV)": """
+/* High Contrast for TV */
+* { font-weight: bold !important; }
+body { background-color: #fff !important; color: #000 !important; }
+.score { font-size: 150% !important; color: black !important; }
+    """
+}
+
 @app.route('/', methods=['GET', 'POST'])
 @login_required
 def index():
@@ -337,12 +365,23 @@ def edit_css():
             else:
                 flash('Fehler beim Umbenennen (Name ungültig oder existiert bereits?).', 'danger')
 
+        elif action == 'install_preset':
+            preset_name = request.form.get('preset_name')
+            if preset_name in PRESET_THEMES:
+                content = PRESET_THEMES[preset_name]
+                if save_theme(preset_name, content):
+                    flash(f'Preset "{preset_name}" wurde als Theme installiert.', 'success')
+                else:
+                    flash('Fehler beim Speichern des Presets.', 'danger')
+            else:
+                flash('Unbekanntes Preset.', 'danger')
+
         return redirect(url_for('edit_css'))
 
     # GET request
     form.css_content.data = read_css()
     themes = list_themes()
-    return render_template('edit_css.html', form=form, themes=themes)
+    return render_template('edit_css.html', form=form, themes=themes, presets=PRESET_THEMES)
 
 
 @app.route('/restart', methods=['POST'])
@@ -419,6 +458,95 @@ def perform_update():
         flash(f"Fehler beim Update: {msg}", 'danger')
         
     return redirect(url_for('index'))
+
+@app.route('/backup')
+@login_required
+def create_backup():
+    try:
+        # Create in-memory zip
+        memory_file = io.BytesIO()
+        with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
+            # Add config.ini
+            if CONFIG_PATH.exists():
+                zf.write(CONFIG_PATH, arcname='config.ini')
+            
+            # Add style.css
+            if CSS_PATH.exists():
+                zf.write(CSS_PATH, arcname='style.css')
+            
+            # Add themes folder
+            if THEMES_DIR.exists():
+                for root, dirs, files in os.walk(THEMES_DIR):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        # Archive name relative to THEMES_DIR parent, so it includes 'themes/'
+                        arcname = os.path.relpath(file_path, APP_DIR)
+                        zf.write(file_path, arcname=arcname)
+        
+        memory_file.seek(0)
+        timestamp = time.strftime("%Y%m%d-%H%M%S")
+        return send_file(
+            memory_file,
+            mimetype='application/zip',
+            as_attachment=True,
+            download_name=f'adarts-backup-{timestamp}.zip'
+        )
+    except Exception as e:
+        flash(f'Fehler beim Erstellen des Backups: {e}', 'danger')
+        return redirect(url_for('index'))
+
+@app.route('/restore', methods=['POST'])
+@login_required
+def restore_backup():
+    if 'backup_file' not in request.files:
+        flash('Keine Datei ausgewählt.', 'danger')
+        return redirect(url_for('index'))
+    
+    file = request.files['backup_file']
+    if file.filename == '':
+        flash('Keine Datei ausgewählt.', 'danger')
+        return redirect(url_for('index'))
+
+    if file and file.filename.endswith('.zip'):
+        try:
+            # Verify zip content first
+            with zipfile.ZipFile(file) as zf:
+                # Basic validation: check for expected files
+                file_names = zf.namelist()
+                if not any(f in file_names for f in ['config.ini', 'style.css']) and not any(f.startswith('themes/') for f in file_names):
+                    flash('Ungültiges Backup-Archiv: Weder config.ini noch style.css oder Themes gefunden.', 'warning')
+                    return redirect(url_for('index'))
+                
+                # Extract
+                # We extract to APP_DIR. 
+                # Warning: zipfile.extractall can be dangerous if zip contains absolute paths or '..'.
+                # But we trust the user here (authenticated admin).
+                for member in zf.infolist():
+                    # Security: skip absolute paths or ..
+                    if member.filename.startswith('/') or '..' in member.filename:
+                        continue
+                        
+                    # Target path
+                    target_path = APP_DIR / member.filename
+                    
+                    # Create directory if needed
+                    if member.is_dir():
+                        target_path.mkdir(parents=True, exist_ok=True)
+                    else:
+                        target_path.parent.mkdir(parents=True, exist_ok=True)
+                        with open(target_path, 'wb') as f:
+                            f.write(zf.read(member))
+            
+            flash('Backup erfolgreich wiederhergestellt! Anwendung startet neu...', 'success')
+            trigger_restart()
+            return redirect(url_for('index'))
+            
+        except Exception as e:
+            flash(f'Fehler beim Wiederherstellen: {e}', 'danger')
+            return redirect(url_for('index'))
+    else:
+        flash('Nur .zip Dateien sind erlaubt.', 'danger')
+        return redirect(url_for('index'))
 
 
 def start_server(host='0.0.0.0', port=5000):

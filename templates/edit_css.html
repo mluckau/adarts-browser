@@ -86,6 +86,23 @@
                 <button type="submit" name="action" value="save" class="btn btn-primary">Speichern</button>
             </div>
         </form>
+
+        <!-- Presets Section -->
+        <div class="card mt-4 mb-5">
+            <div class="section-header">Beispiel-Themes & Presets</div>
+            <div class="card-body">
+                <p class="text-muted small">Installieren Sie vorgefertigte Themes, um sie anschließend anzupassen oder zu aktivieren.</p>
+                <div class="d-flex flex-wrap gap-2">
+                    {% for name in presets %}
+                    <form method="POST" class="d-inline">
+                        <input type="hidden" name="action" value="install_preset">
+                        <input type="hidden" name="preset_name" value="{{ name }}">
+                        <button type="submit" class="btn btn-outline-info btn-sm">➕ {{ name }}</button>
+                    </form>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

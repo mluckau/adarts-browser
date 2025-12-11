@@ -6,7 +6,7 @@ import os
 import shutil
 from datetime import timedelta
 from functools import wraps
-from flask import Flask, render_template, request, flash, redirect, url_for, session, send_file
+from flask import Flask, render_template, request, flash, redirect, url_for, session, send_file, make_response
 from wtforms import Form, StringField, IntegerField, BooleanField, PasswordField, TextAreaField, FloatField, validators, SelectField
 from werkzeug.security import generate_password_hash, check_password_hash
 from werkzeug.utils import secure_filename
@@ -396,7 +396,11 @@ def edit_css():
             if online_ver and not local_ver:
                  theme['update_available'] = True
 
-    return render_template('edit_css.html', form=form, themes=themes, presets=online_themes)
+    response = make_response(render_template('edit_css.html', form=form, themes=themes, presets=online_themes))
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 
 
 @app.route('/restart', methods=['POST'])

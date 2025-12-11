@@ -94,7 +94,7 @@ class BrowserView(QWebEngineView):
             print(
                 f"[Browser {self.browser_id}] Page failed to load: {current_url}")
             return
-        
+
         # Apply Zoom Factor
         self.setZoomFactor(config.zoom_factor)
 
@@ -110,11 +110,11 @@ class BrowserView(QWebEngineView):
 
             # Always try to inject autologin script, in case login form is on the target page
             if config.autologin_enabled:
-                 # Check max attempts even for target page to be safe, though usually we want to retry if we landed here but are logged out
-                 if self.login_attempts < config.autologin_max_attempts:
+                # Check max attempts even for target page to be safe, though usually we want to retry if we landed here but are logged out
+                if self.login_attempts < config.autologin_max_attempts:
                     self.login_attempts += 1
                     self._inject_autologin()
-            
+
             if config.view_mode and config.view_mode != 'none':
                 self._inject_view_mode()
 
@@ -126,14 +126,16 @@ class BrowserView(QWebEngineView):
                     self.login_attempts += 1
                     self._inject_autologin()
                 else:
-                    print(f"[Browser {self.browser_id}] Max login attempts reached. Stopping autologin.")
-        
+                    print(
+                        f"[Browser {self.browser_id}] Max login attempts reached. Stopping autologin.")
+
         # Inject offline check script
         self._inject_offline_check()
 
     def _inject_autologin(self):
-        print(f"[Browser {self.browser_id}] Injecting autologin script... (Attempt {self.login_attempts}/{config.autologin_max_attempts})")
-        
+        print(
+            f"[Browser {self.browser_id}] Injecting autologin script... (Attempt {self.login_attempts}/{config.autologin_max_attempts})")
+
         # No need to check for empty here, if config is empty, the JS will simply try to set empty values.
         # This will be handled by the login page, which will probably reject empty credentials.
 
@@ -147,7 +149,8 @@ class BrowserView(QWebEngineView):
 
     def _inject_view_mode(self):
         mode = config.view_mode
-        print(f"[Browser {self.browser_id}] Injecting View Mode script for '{mode}'...")
+        print(
+            f"[Browser {self.browser_id}] Injecting View Mode script for '{mode}'...")
         script_code = VIEW_MODE_TPL.replace('{view_mode}', mode)
         run_script(self, script_code, name="viewMode")
         self.page.runJavaScript(script_code)
@@ -163,13 +166,15 @@ class BrowserView(QWebEngineView):
                 with open(CSS_PATH, "r", encoding="utf-8") as f:
                     css_content = f.read()
             except Exception as e:
-                print(f"[Browser {self.browser_id}] Error reading style.css: {e}")
+                print(
+                    f"[Browser {self.browser_id}] Error reading style.css: {e}")
                 return
 
         # Use Base64 encoding to safely pass CSS to JS
         try:
-            css_b64 = base64.b64encode(css_content.encode('utf-8')).decode('ascii').replace('\n', '').replace('\r', '').strip()
-            
+            css_b64 = base64.b64encode(css_content.encode(
+                'utf-8')).decode('ascii').replace('\n', '').replace('\r', '').strip()
+
             script_code = CSS_INJECT_TPL.replace(
                 "{css_b64}", css_b64
             )
@@ -184,7 +189,8 @@ class BrowserView(QWebEngineView):
             if self.local_http_port:
                 logo_url = f"http://localhost:{self.local_http_port}/{config.logo_source}"
             else:
-                print("[ERROR] Local HTTP server not started, cannot serve local logo.")
+                print(
+                    "[ERROR] Local HTTP server not started, cannot serve local logo.")
                 return
         else:
             logo_url = config.logo_source
@@ -196,17 +202,19 @@ class BrowserView(QWebEngineView):
 
     def _inject_offline_check(self):
         print(f"[Browser {self.browser_id}] Injecting offline check script...")
-        
+
         try:
             # Use Base64 encoding for HTML content as well
-            html_b64 = base64.b64encode(OFFLINE_PAGE_TPL.encode('utf-8')).decode('ascii').replace('\n', '').replace('\r', '').strip()
-            
+            html_b64 = base64.b64encode(OFFLINE_PAGE_TPL.encode(
+                'utf-8')).decode('ascii').replace('\n', '').replace('\r', '').strip()
+
             script_code = OFFLINE_CHECK_SCRIPT_TPL.replace(
                 '{offline_html_b64}', html_b64
             )
             run_script(self, script_code, name="offlineCheck")
         except Exception as e:
-            print(f"[Browser {self.browser_id}] Error injecting offline check: {e}")
+            print(
+                f"[Browser {self.browser_id}] Error injecting offline check: {e}")
 
 
 class AutodartsBrowser(QMainWindow):
@@ -216,7 +224,7 @@ class AutodartsBrowser(QMainWindow):
         self._is_restarting = False
         self.browsers = []
         self.http_server = None
-        self.local_http_port = None # Initialize local HTTP server port
+        self.local_http_port = None  # Initialize local HTTP server port
 
         self.start_http_server()
         self.init_ui()
@@ -254,12 +262,14 @@ class AutodartsBrowser(QMainWindow):
             self.layout.addWidget(browser2)
 
     def start_http_server(self):
-        if config.logos_enabled and config.logos_local: # Only start if local logos are enabled
+        if config.logos_enabled and config.logos_local:  # Only start if local logos are enabled
             self.http_server, _, self.local_http_port = ServeDirectoryWithHTTP(
                 directory=str(APP_DIR))
-            print(f"[INFO] Local HTTP server started on port: {self.local_http_port}")
+            print(
+                f"[INFO] Local HTTP server started on port: {self.local_http_port}")
         else:
-            self.local_http_port = 3344 # Fallback to default if local server is not started (e.g. for logos_local=False case)
+            # Fallback to default if local server is not started (e.g. for logos_local=False case)
+            self.local_http_port = 3344
 
     def load_pages(self):
         for browser in self.browsers:
@@ -269,7 +279,7 @@ class AutodartsBrowser(QMainWindow):
         print("[INFO] Auto-refreshing all pages...")
         for browser in self.browsers:
             browser.reload()
-            
+
     def update_css(self):
         print("[INFO] Updating CSS in all browsers...")
         for browser in self.browsers:
@@ -287,45 +297,44 @@ class AutodartsBrowser(QMainWindow):
 
     def init_config_watcher(self):
         self.watcher = QFileSystemWatcher()
-        
+
         # Watch config file
         self.watcher.addPath(str(CONFIG_PATH))
-        
+
         # Watch style file
         if not CSS_PATH.exists():
             CSS_PATH.touch()
         self.watcher.addPath(str(CSS_PATH))
-        
+
         # Watch restart trigger file
         if not RESTART_TRIGGER_PATH.exists():
             RESTART_TRIGGER_PATH.touch()
         self.watcher.addPath(str(RESTART_TRIGGER_PATH))
-        
+
         # Watch reload trigger file
         if not RELOAD_TRIGGER_PATH.exists():
             RELOAD_TRIGGER_PATH.touch()
         self.watcher.addPath(str(RELOAD_TRIGGER_PATH))
-        
+
         # Connect signal to a single handler
         self.watcher.fileChanged.connect(self._on_file_changed)
-
 
     def _on_file_changed(self, path):
         changed_path = str(Path(path).absolute())
         print(f"[DEBUG] File changed: {changed_path}")
-        
+
         if str(CONFIG_PATH.absolute()) == changed_path:
             print("[INFO] config.ini changed. Scheduling restart.")
             self._trigger_restart()
-            
+
         elif str(CSS_PATH.absolute()) == changed_path:
             print("[INFO] style.css changed. Updating styles.")
             self.update_css()
-            
+
         elif str(RESTART_TRIGGER_PATH.absolute()) == changed_path:
             print("[INFO] Restart trigger file touched. Scheduling restart.")
             self._trigger_restart()
-            
+
         elif str(RELOAD_TRIGGER_PATH.absolute()) == changed_path:
             print("[INFO] Reload trigger detected. Reloading all browser pages.")
             self.refresh_pages()
@@ -399,16 +408,18 @@ def main():
     try:
         # Setup logging
         import logging
-        logging.basicConfig(filename=str(LOG_PATH), level=logging.INFO, 
+        logging.basicConfig(filename=str(LOG_PATH), level=logging.INFO,
                             format='%(asctime)s - %(levelname)s - %(message)s')
-        
+
         # Redirect stdout and stderr to the log file
         class LogWriter:
             def __init__(self, level):
                 self.level = level
+
             def write(self, message):
                 if message.strip():
                     self.level(message.strip())
+
             def flush(self):
                 pass
 
@@ -435,7 +446,8 @@ def main():
             target_screen_index = 0
 
         target_screen = screens[target_screen_index]
-        print(f"[INFO] Using screen {target_screen_index}: {target_screen.name()}")
+        print(
+            f"[INFO] Using screen {target_screen_index}: {target_screen.name()}")
 
         main_window = AutodartsBrowser()
         main_window.setScreen(target_screen)
@@ -455,7 +467,7 @@ def main():
         else:
             print("[INFO] Application has exited.")
             sys.exit(exit_code)
-            
+
     except Exception as e:
         import traceback
         if not LOG_DIR.exists():

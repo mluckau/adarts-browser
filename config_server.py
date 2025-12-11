@@ -14,10 +14,11 @@ from werkzeug.utils import secure_filename
 # Import centralized configuration and utilities
 from config import get_config
 from utils import (
-    APP_DIR, CSS_PATH, THEMES_DIR, LOG_PATH, CONFIG_PATH,
+    APP_DIR, CSS_PATH, THEMES_DIR, LOG_PATH, CONFIG_PATH, THEME_REPO_BASE_URL,
     trigger_restart, trigger_reload, request_clear_cache, encrypt_value,
     git_check_update, git_perform_update,
-    fetch_available_themes, fetch_theme_content, get_local_theme_version
+    fetch_available_themes, fetch_theme_content, get_local_theme_version,
+    _sanitize_theme_name
 )
 
 app = Flask(__name__)
@@ -396,7 +397,7 @@ def edit_css():
             if online_ver and not local_ver:
                  theme['update_available'] = True
 
-    response = make_response(render_template('edit_css.html', form=form, themes=themes, presets=online_themes))
+    response = make_response(render_template('edit_css.html', form=form, themes=themes, presets=online_themes, repo_url=THEME_REPO_BASE_URL))
     response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
     response.headers["Pragma"] = "no-cache"
     response.headers["Expires"] = "0"

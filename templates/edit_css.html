@@ -97,38 +97,52 @@
                 <p class="text-muted small">Installieren Sie vorgefertigte Themes direkt aus dem <a href="https://github.com/mluckau/adarts-browser-themes" target="_blank">Community Repository</a>.</p>
                 <div class="list-group">
                     {% for theme in presets %}
-                    <div class="list-group-item d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="mb-0">{{ theme.name }} <small class="text-muted">(v{{ theme.version }})</small></h6>
-                            <small class="text-muted">{{ theme.description }}</small>
-                        </div>
-                        <div>
-                            {% if theme.is_installed %}
-                                {% if theme.update_available %}
+                    <div class="list-group-item">
+                        <div class="d-flex align-items-center">
+                            <!-- Thumbnail -->
+                            {% if theme.image %}
+                            <div class="flex-shrink-0 me-3">
+                                <a href="{{ repo_url }}{{ theme.image }}" target="_blank" title="Vorschau vergrößern">
+                                    <img src="{{ repo_url }}{{ theme.image }}" alt="{{ theme.name }}" style="width: 120px; height: 68px; object-fit: cover; border-radius: 4px; border: 1px solid #dee2e6;">
+                                </a>
+                            </div>
+                            {% endif %}
+
+                            <!-- Content -->
+                            <div class="flex-grow-1">
+                                <h6 class="mb-0">{{ theme.name }} <small class="text-muted">(v{{ theme.version }})</small></h6>
+                                <small class="text-muted">{{ theme.description }}</small>
+                            </div>
+
+                            <!-- Actions -->
+                            <div class="flex-shrink-0 ms-3">
+                                {% if theme.is_installed %}
+                                    {% if theme.update_available %}
+                                        <form method="POST" class="d-inline">
+                                            <input type="hidden" name="action" value="install_preset">
+                                            <input type="hidden" name="preset_name" value="{{ theme.name }}">
+                                            <input type="hidden" name="preset_file" value="{{ theme.file }}">
+                                            <input type="hidden" name="preset_version" value="{{ theme.version }}">
+                                            <button type="submit" class="btn btn-warning btn-sm" title="Installierte Version: {{ theme.local_version }}">🔄 Update</button>
+                                        </form>
+                                    {% else %}
+                                        <span class="badge bg-success">Installiert {% if theme.local_version %}(v{{ theme.local_version }}){% endif %}</span>
+                                    {% endif %}
+                                    <form method="POST" class="d-inline ms-2" onsubmit="return confirm('Theme \'{{ theme.name }}\' wirklich deinstallieren?');">
+                                        <input type="hidden" name="action" value="delete_theme">
+                                        <input type="hidden" name="selected_theme" value="{{ theme.name }}">
+                                        <button type="submit" class="btn btn-outline-danger btn-sm" title="Deinstallieren">🗑️</button>
+                                    </form>
+                                {% else %}
                                     <form method="POST" class="d-inline">
                                         <input type="hidden" name="action" value="install_preset">
                                         <input type="hidden" name="preset_name" value="{{ theme.name }}">
                                         <input type="hidden" name="preset_file" value="{{ theme.file }}">
                                         <input type="hidden" name="preset_version" value="{{ theme.version }}">
-                                        <button type="submit" class="btn btn-warning btn-sm" title="Installierte Version: {{ theme.local_version }}">🔄 Update</button>
+                                        <button type="submit" class="btn btn-outline-info btn-sm">⬇️ Installieren</button>
                                     </form>
-                                {% else %}
-                                    <span class="badge bg-success">Installiert {% if theme.local_version %}(v{{ theme.local_version }}){% endif %}</span>
                                 {% endif %}
-                                <form method="POST" class="d-inline ms-2" onsubmit="return confirm('Theme \'{{ theme.name }}\' wirklich deinstallieren?');">
-                                    <input type="hidden" name="action" value="delete_theme">
-                                    <input type="hidden" name="selected_theme" value="{{ theme.name }}">
-                                    <button type="submit" class="btn btn-outline-danger btn-sm" title="Deinstallieren">🗑️</button>
-                                </form>
-                            {% else %}
-                                <form method="POST" class="d-inline">
-                                    <input type="hidden" name="action" value="install_preset">
-                                    <input type="hidden" name="preset_name" value="{{ theme.name }}">
-                                    <input type="hidden" name="preset_file" value="{{ theme.file }}">
-                                    <input type="hidden" name="preset_version" value="{{ theme.version }}">
-                                    <button type="submit" class="btn btn-outline-info btn-sm">⬇️ Installieren</button>
-                                </form>
-                            {% endif %}
+                            </div>
                         </div>
                     </div>
                     {% else %}

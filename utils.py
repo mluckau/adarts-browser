@@ -87,25 +87,35 @@ def generate_qr_code_image(data):
 # --- Git Update Helpers ---
 def git_check_update():
     """
-    Checks for updates by fetching origin and comparing HEAD with origin/main.
+    Checks for updates by fetching origin and comparing HEAD with origin/<current_branch>.
     Returns: (update_available: bool, message: str)
     """
     try:
         # 1. Fetch changes
         subprocess.check_call(['git', 'fetch'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
         
+        # Determine current branch
+        branch = subprocess.check_output(['git', 'rev-parse', '--abbrev-ref', 'HEAD']).decode('ascii').strip()
+        if branch == "HEAD": # Detached HEAD state
+            return False, "Update-Prüfung nicht möglich (Detached HEAD)"
+            
+        remote_ref = f"origin/{branch}"
+
         # 2. Get hash of HEAD
         local_hash = subprocess.check_output(['git', 'rev-parse', 'HEAD']).decode('ascii').strip()
         
-        # 3. Get hash of origin/main (assuming main is the branch)
-        remote_hash = subprocess.check_output(['git', 'rev-parse', 'origin/main']).decode('ascii').strip()
+        # 3. Get hash of upstream branch
+        try:
+            remote_hash = subprocess.check_output(['git', 'rev-parse', remote_ref]).decode('ascii').strip()
+        except subprocess.CalledProcessError:
+             return False, f"Remote-Branch '{remote_ref}' nicht gefunden."
         
         if local_hash != remote_hash:
             # Check if we are behind
-            # "git rev-list --count HEAD..origin/main" returns number of commits we are behind
-            behind_count = subprocess.check_output(['git', 'rev-list', '--count', 'HEAD..origin/main']).decode('ascii').strip()
+            # "git rev-list --count HEAD..origin/branch" returns number of commits we are behind
+            behind_count = subprocess.check_output(['git', 'rev-list', '--count', f'HEAD..{remote_ref}']).decode('ascii').strip()
             if int(behind_count) > 0:
-                return True, f"Update verfügbar ({behind_count} Commits hinter origin/main)"
+                return True, f"Update verfügbar ({behind_count} Commits hinter {remote_ref})"
             else:
                 return False, "Lokale Version ist neuer oder divergiert."
         

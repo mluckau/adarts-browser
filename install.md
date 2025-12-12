@@ -106,7 +106,7 @@ Type=Application
 Name=Autodarts-Browser
 Comment=Der Autodarts-Browser
 # Pfad ANPASSEN:
-Exec=/home/michael/Coding/adarts-browser/start.sh
+Exec=/pfad/zu/adarts-browser/start.sh
 StartupNotify=false
 Terminal=false
 Hidden=false

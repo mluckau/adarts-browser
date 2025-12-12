@@ -1,3 +1,4 @@
+import sys
 import os
 import time
 import threading
@@ -223,9 +224,9 @@ def git_perform_update():
         pull_output = subprocess.check_output(['git', 'pull'], stderr=subprocess.STDOUT).decode('utf-8')
         
         # 2. pip install -r requirements.txt
-        # We assume pip is available in the current environment
+        # Use sys.executable to ensure we use the pip of the current environment
         pip_output = subprocess.check_output(
-            ['pip', 'install', '-r', 'requirements.txt'], 
+            [sys.executable, '-m', 'pip', 'install', '-r', 'requirements.txt'], 
             stderr=subprocess.STDOUT
         ).decode('utf-8')
         

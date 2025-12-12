@@ -22,6 +22,9 @@
             {% if global_device_name %}
             <span class="badge bg-secondary ms-2">{{ global_device_name }}</span>
             {% endif %}
+            {% if global_update_available %}
+            <a href="{{ url_for('index') }}" class="badge bg-success text-decoration-none ms-2">Update verfügbar!</a>
+            {% endif %}
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
           <span class="navbar-toggler-icon"></span>

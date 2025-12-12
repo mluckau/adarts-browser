@@ -115,24 +115,45 @@ def fetch_theme_content(filename):
         print(f"[ERROR] Failed to fetch theme content for {filename}: {e}")
         return None
 
-def get_local_theme_version(file_path):
+def get_local_theme_metadata(file_path):
     """
-    Reads the first line of a CSS file to extract the version.
-    Format expected: /* VERSION: 1.0 */
-    Returns string version or None.
+    Reads the first few lines of a CSS file to extract metadata.
+    Looks for /* VERSION: ... */, /* AUTHOR: ... */, /* NAME: ... */, /* DESCRIPTION: ... */
+    Returns a dict with keys 'version', 'author', 'name', 'description'.
     """
+    metadata = {'version': None, 'author': None, 'name': None, 'description': None}
     try:
         if not file_path.exists():
-            return None
+            return metadata
         with open(file_path, 'r', encoding='utf-8') as f:
-            first_line = f.readline().strip()
-            # Check for pattern /* VERSION: x.y */
-            if first_line.startswith('/* VERSION:') and first_line.endswith('*/'):
-                version = first_line.replace('/* VERSION:', '').replace('*/', '').strip()
-                return version
+            # Read first 10 lines to find metadata
+            for _ in range(10):
+                line = f.readline().strip()
+                if not line: continue
+                
+                if 'VERSION:' in line:
+                    parts = line.split('VERSION:')
+                    if len(parts) > 1:
+                        metadata['version'] = parts[1].split('*/')[0].strip()
+                        
+                if 'AUTHOR:' in line:
+                    parts = line.split('AUTHOR:')
+                    if len(parts) > 1:
+                        metadata['author'] = parts[1].split('*/')[0].strip()
+
+                if 'NAME:' in line:
+                    parts = line.split('NAME:')
+                    if len(parts) > 1:
+                        metadata['name'] = parts[1].split('*/')[0].strip()
+
+                if 'DESCRIPTION:' in line:
+                    parts = line.split('DESCRIPTION:')
+                    if len(parts) > 1:
+                        metadata['description'] = parts[1].split('*/')[0].strip()
+                        
     except Exception:
         pass
-    return None
+    return metadata
 
 # --- Git Update Helpers ---
 def git_check_update():

@@ -22,6 +22,28 @@ Ein spezialisierter Kiosk-Browser zur Anzeige von [Autodarts](https://autodarts.
 - **Log-Viewer**: Anzeige der System-Logs direkt im Web-Interface zur einfachen Fehlersuche.
 - **Headless-Betrieb**: Für Systeme ohne direkt angeschlossene Eingabegeräte konzipiert.
 
+## Community Themes
+
+Der Autodarts-Browser verfügt über ein integriertes Online-Repository für Themes. Sie können vorgefertigte Designs direkt in der App installieren.
+
+**Haben Sie ein tolles Theme erstellt?**
+Wir freuen uns über Beiträge aus der Community! Sie haben zwei Möglichkeiten, Ihr Theme mit anderen zu teilen:
+
+### 1. Per GitHub (Bevorzugt)
+1. Exportieren Sie Ihr Theme im Web-Interface über den Button "📤 Exportieren". Füllen Sie dabei die Metadaten (Name, Autor, Beschreibung) aus.
+2. Besuchen Sie das [Theme-Repository auf GitHub](https://github.com/mluckau/adarts-browser-themes).
+3. Erstellen Sie einen **Fork** des Repositories.
+4. Laden Sie Ihre `.css` Datei in den Ordner `themes/` hoch.
+5. (Optional) Fügen Sie einen Screenshot Ihres Themes hinzu.
+6. Bearbeiten Sie die `themes.json`, um Ihr Theme einzutragen (orientieren Sie sich an den vorhandenen Einträgen).
+7. Erstellen Sie einen **Pull Request**.
+
+### 2. Via GitHub Issues
+1. Exportieren Sie Ihr Theme im Web-Interface über den Button "📤 Exportieren". Füllen Sie dabei die Metadaten (Name, Autor, Beschreibung) aus.
+2. Besuchen Sie den **Issues-Bereich** des [Theme-Repository auf GitHub](https://github.com/mluckau/adarts-browser-themes/issues).
+3. Erstellen Sie ein **neues Issue** und beschreiben Sie Ihr Theme.
+4. Fügen Sie die exportierte `.css` Datei (und gerne auch einen Screenshot) als Anhang zum Issue hinzu.
+
 ## Installation
 
 ### 1. Voraussetzungen

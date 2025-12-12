@@ -17,7 +17,7 @@ from utils import (
     APP_DIR, CSS_PATH, THEMES_DIR, LOG_PATH, CONFIG_PATH, THEME_REPO_BASE_URL,
     trigger_restart, trigger_reload, request_clear_cache, encrypt_value,
     git_check_update, git_perform_update,
-    fetch_available_themes, fetch_theme_content, get_local_theme_version
+    fetch_available_themes, fetch_theme_content, get_local_theme_metadata
 )
 
 app = Flask(__name__)
@@ -115,6 +115,21 @@ class ConfigForm(Form):
 
 class CSSForm(Form):
     css_content = TextAreaField('CSS Inhalt')
+
+def strip_css_metadata(content):
+    """Removes metadata comments (VERSION, AUTHOR, NAME, DESCRIPTION) from CSS content."""
+    if not content: return ""
+    lines = content.splitlines()
+    filtered = []
+    for line in lines:
+        check = line.strip()
+        if (check.startswith('/* VERSION:') or
+            check.startswith('/* AUTHOR:') or
+            check.startswith('/* NAME:') or
+            check.startswith('/* DESCRIPTION:')):
+            continue
+        filtered.append(line)
+    return "\n".join(filtered)
 
 def read_css():
     if not CSS_PATH.exists():
@@ -323,9 +338,11 @@ def edit_css():
             theme_name = request.form.get('selected_theme')
             content = load_theme(theme_name)
             if content is not None:
-                form.css_content.data = content
-                # Optionally save immediately to apply
-                write_css(content)
+                # Strip metadata for editor view
+                clean_content = strip_css_metadata(content)
+                form.css_content.data = clean_content
+                # Save the CLEAN content to style.css (active style)
+                write_css(clean_content)
                 flash(f'Theme "{theme_name}" geladen und angewendet.', 'success')
             else:
                 flash('Fehler beim Laden des Themes.', 'danger')
@@ -348,14 +365,24 @@ def edit_css():
         elif action == 'install_preset':
             preset_name = request.form.get('preset_name')
             preset_file = request.form.get('preset_file')
-            preset_version = request.form.get('preset_version') # Get version from form
+            preset_version = request.form.get('preset_version')
+            preset_author = request.form.get('preset_author')
             
             if preset_name and preset_file:
                 content = fetch_theme_content(preset_file)
                 if content:
-                    # Prepend version info if available
+                    # Strip existing metadata to avoid duplication
+                    content = strip_css_metadata(content)
+
+                    # Prepend metadata
+                    header = []
                     if preset_version:
-                        content = f"/* VERSION: {preset_version} */\n{content}"
+                        header.append(f"/* VERSION: {preset_version} */")
+                    if preset_author:
+                        header.append(f"/* AUTHOR: {preset_author} */")
+                    
+                    if header:
+                        content = "\n".join(header) + "\n" + content
                         
                     if save_theme(preset_name, content):
                         flash(f'Theme "{preset_name}" (v{preset_version}) erfolgreich installiert.', 'success')
@@ -366,11 +393,100 @@ def edit_css():
             else:
                 flash('Ungültige Preset-Daten.', 'danger')
 
+        elif action == 'export_theme':
+            export_name = request.form.get('export_name', 'theme')
+            safe_filename = _sanitize_theme_name(export_name)
+            if not safe_filename:
+                safe_filename = "theme"
+                
+            # Metadata fields
+            meta_name = request.form.get('export_display_name', '')
+            meta_author = request.form.get('export_author', '')
+            meta_desc = request.form.get('export_description', '')
+            meta_ver = request.form.get('export_version', '1.0')
+            
+            # CSS Content (from editor)
+            content = request.form.get('css_content', '')
+            
+            # Build Header
+            header = []
+            if meta_name: header.append(f"/* NAME: {meta_name} */")
+            if meta_author: header.append(f"/* AUTHOR: {meta_author} */")
+            if meta_desc: header.append(f"/* DESCRIPTION: {meta_desc} */")
+            if meta_ver: header.append(f"/* VERSION: {meta_ver} */")
+            
+            if header:
+                final_content = "\n".join(header) + "\n\n" + content
+            else:
+                final_content = content
+
+            # Send as file
+            buffer = io.BytesIO()
+            buffer.write(final_content.encode('utf-8'))
+            buffer.seek(0)
+            
+            return send_file(
+                buffer,
+                as_attachment=True,
+                download_name=f"{safe_filename}.css",
+                mimetype='text/css'
+            )
+
+        elif action == 'import_theme':
+            if 'import_file' not in request.files:
+                flash('Keine Datei ausgewählt.', 'danger')
+            else:
+                file = request.files['import_file']
+                if file.filename == '':
+                    flash('Keine Datei ausgewählt.', 'danger')
+                elif file and file.filename.endswith('.css'):
+                    try:
+                        content = file.read().decode('utf-8')
+                        
+                        # Try to find NAME metadata in content to determine filename
+                        theme_name = None
+                        lines = content.splitlines()[:10] # Check first 10 lines
+                        for line in lines:
+                            if '/* NAME:' in line:
+                                parts = line.split('NAME:')
+                                if len(parts) > 1:
+                                    extracted_name = parts[1].split('*/')[0].strip()
+                                    if extracted_name:
+                                        theme_name = extracted_name
+                                        break
+                        
+                        # Fallback to filename if no NAME metadata found
+                        if not theme_name:
+                             filename = secure_filename(file.filename)
+                             theme_name = os.path.splitext(filename)[0]
+                        
+                        if save_theme(theme_name, content):
+                            flash(f'Theme "{theme_name}" erfolgreich importiert.', 'success')
+                        else:
+                            flash('Fehler beim Speichern des Themes.', 'danger')
+                    except Exception as e:
+                        flash(f'Fehler beim Importieren: {e}', 'danger')
+                else:
+                    flash('Ungültiges Dateiformat. Bitte eine .css Datei wählen.', 'danger')
+
         return redirect(url_for('edit_css'))
 
     # GET request
-    form.css_content.data = read_css()
-    themes = list_themes()
+    raw_content = read_css()
+    form.css_content.data = strip_css_metadata(raw_content)
+    
+    # Enrich local themes
+    theme_names = list_themes()
+    themes = []
+    for name in theme_names:
+        path = THEMES_DIR / f"{name}.css"
+        meta = get_local_theme_metadata(path)
+        themes.append({
+            'name': name,
+            'version': meta.get('version'),
+            'author': meta.get('author')
+        })
+
     online_themes = fetch_available_themes()
     
     # Process online themes to check installation status
@@ -385,7 +501,8 @@ def edit_css():
         
         if local_path.exists():
             theme['is_installed'] = True
-            local_ver = get_local_theme_version(local_path)
+            meta = get_local_theme_metadata(local_path)
+            local_ver = meta.get('version')
             theme['local_version'] = local_ver
             
             # Simple string comparison for versions (works for 1.0 vs 1.1, but ideally use semver)

@@ -19,7 +19,7 @@
                         <form method="POST" class="d-flex gap-2" id="theme_management_form">
                             <select name="selected_theme" id="selected_theme" class="form-select">
                                 {% for theme in themes %}
-                                    <option value="{{ theme }}">{{ theme }}</option>
+                                    <option value="{{ theme.name }}">{{ theme.name }}{% if theme.author %} ({{ theme.author }}){% endif %}</option>
                                 {% endfor %}
                             </select>
                             <input type="hidden" name="new_theme_name" id="new_theme_name">
@@ -60,12 +60,16 @@
                         <label for="theme_name" class="col-form-label">Aktuelles CSS speichern als:</label>
                     </div>
                     <div class="col-auto flex-grow-1">
-                        <form method="POST" class="d-flex gap-2">
-                            <!-- We need to send the current CSS content along with the save request -->
-                            <textarea name="css_content" style="display:none;" id="hidden_css_content"></textarea>
-                            <input type="text" name="theme_name" id="theme_name" class="form-control" placeholder="Neuer Theme Name">
-                            <button type="submit" name="action" value="save_theme" class="btn btn-success" onclick="document.getElementById('hidden_css_content').value = document.getElementById('main_css_editor').value;">Als Theme speichern</button>
-                        </form>
+                        <div class="d-flex gap-2">
+                            <form method="POST" class="d-flex gap-2 flex-grow-1">
+                                <!-- We need to send the current CSS content along with the save request -->
+                                <textarea name="css_content" style="display:none;" id="hidden_css_content"></textarea>
+                                <input type="text" name="theme_name" id="theme_name" class="form-control" placeholder="Neuer Theme Name">
+                                <button type="submit" name="action" value="save_theme" class="btn btn-success" onclick="document.getElementById('hidden_css_content').value = document.getElementById('main_css_editor').value;">Als Theme speichern</button>
+                            </form>
+                            <button type="button" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#exportModal">📤 Exportieren</button>
+                            <button type="button" class="btn btn-secondary" data-bs-toggle="modal" data-bs-target="#importModal">📥 Importieren</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -112,6 +116,9 @@
                             <div class="flex-grow-1">
                                 <h6 class="mb-0">{{ theme.name }} <small class="text-muted">(v{{ theme.version }})</small></h6>
                                 <small class="text-muted">{{ theme.description }}</small>
+                                {% if theme.author %}
+                                    <br><small class="text-muted">Author: {{ theme.author }}</small>
+                                {% endif %}
                             </div>
 
                             <!-- Actions -->
@@ -123,6 +130,7 @@
                                             <input type="hidden" name="preset_name" value="{{ theme.name }}">
                                             <input type="hidden" name="preset_file" value="{{ theme.file }}">
                                             <input type="hidden" name="preset_version" value="{{ theme.version }}">
+                                            <input type="hidden" name="preset_author" value="{{ theme.author }}">
                                             <button type="submit" class="btn btn-warning btn-sm" title="Installierte Version: {{ theme.local_version }}">🔄 Update</button>
                                         </form>
                                     {% else %}
@@ -139,6 +147,7 @@
                                         <input type="hidden" name="preset_name" value="{{ theme.name }}">
                                         <input type="hidden" name="preset_file" value="{{ theme.file }}">
                                         <input type="hidden" name="preset_version" value="{{ theme.version }}">
+                                        <input type="hidden" name="preset_author" value="{{ theme.author }}">
                                         <button type="submit" class="btn btn-outline-info btn-sm">⬇️ Installieren</button>
                                     </form>
                                 {% endif %}
@@ -153,6 +162,73 @@
                 </div>
             </div>
         </div>
+    </div>
+</div>
+
+<!-- Import Modal -->
+<div class="modal fade" id="importModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ url_for('edit_css') }}" enctype="multipart/form-data">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Theme Importieren</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label">CSS Datei auswählen</label>
+                        <input type="file" name="import_file" class="form-control" accept=".css" required>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" name="action" value="import_theme" class="btn btn-primary">Importieren</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Export Modal -->
+<div class="modal fade" id="exportModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" action="{{ url_for('edit_css') }}">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Theme Exportieren</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p class="small text-muted">Fügen Sie Metadaten hinzu, um das Theme zu teilen. Diese werden als Kommentare in die CSS-Datei geschrieben.</p>
+                    <div class="mb-3">
+                        <label class="form-label">Dateiname (ohne .css)</label>
+                        <input type="text" name="export_name" class="form-control" required placeholder="Mein_Theme">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Name (Anzeige)</label>
+                        <input type="text" name="export_display_name" class="form-control" placeholder="Mein Tolles Theme">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Autor</label>
+                        <input type="text" name="export_author" class="form-control" placeholder="Ihr Name">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Beschreibung</label>
+                        <input type="text" name="export_description" class="form-control" placeholder="Kurze Beschreibung des Themes">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Version</label>
+                        <input type="text" name="export_version" class="form-control" value="1.0">
+                    </div>
+                    <!-- Hidden textarea to sync current editor content -->
+                    <textarea name="css_content" id="export_css_content" style="display:none;"></textarea>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Abbrechen</button>
+                    <button type="submit" name="action" value="export_theme" class="btn btn-primary" onclick="document.getElementById('export_css_content').value = document.getElementById('main_css_editor').value;" data-bs-dismiss="modal">Herunterladen</button>
+                </div>
+            </div>
+        </form>
     </div>
 </div>
 {% endblock %}

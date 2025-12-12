@@ -2,6 +2,20 @@
 
 Diese Anleitung ist für Manjaro Xfce geschrieben, sollte aber, so oder so ähnlich, auch mit anderen Systemen funktionieren.
 
+## System-Abhängigkeiten installieren
+
+Damit alle benötigten Python-Pakete (z.B. `netifaces`) korrekt installiert werden können, werden grundlegende Build-Tools (C-Compiler) benötigt.
+
+**Manjaro / Arch Linux:**
+```bash
+sudo pacman -S base-devel
+```
+
+**Ubuntu / Debian / Raspberry Pi OS:**
+```bash
+sudo apt install build-essential python3-dev
+```
+
 ## X11vnc installieren
 
 ```bash

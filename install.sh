@@ -3,6 +3,28 @@ set -e
 
 echo "=== Autodarts Browser Installer ==="
 
+# 0. Check for C Compiler (needed for some python packages like netifaces)
+if ! command -v gcc &> /dev/null; then
+    echo "Warning: gcc (C compiler) not found. Required for installing dependencies."
+    read -p "Attempt to install build tools automatically? (y/N) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        if command -v pacman &> /dev/null; then
+            echo "Detected Arch/Manjaro. Installing base-devel..."
+            sudo pacman -S --needed base-devel
+        elif command -v apt-get &> /dev/null; then
+            echo "Detected Debian/Ubuntu. Installing build-essential and python3-dev..."
+            sudo apt-get update && sudo apt-get install -y build-essential python3-dev
+        else
+            echo "Error: Could not detect package manager. Please install 'gcc' / build tools manually."
+            exit 1
+        fi
+    else
+        echo "Aborting installation. Please install build tools manually."
+        exit 1
+    fi
+fi
+
 # 1. Check for Python 3
 if ! command -v python3 &> /dev/null; then
     echo "Error: python3 could not be found. Please install Python 3."

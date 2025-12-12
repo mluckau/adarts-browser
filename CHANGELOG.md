@@ -28,6 +28,7 @@ Alle Änderungen am Projekt werden in dieser Datei dokumentiert.
 - **Theme-Metadaten-Duplikation**: Das Problem der doppelten Metadaten-Kommentare beim Speichern von Themes wurde behoben.
 - **UX-Export-Modal**: Das Export-Modal schließt sich nun automatisch nach dem Initiieren eines Downloads.
 - **Installation**: Behebung des Syntaxfehlers im `install.sh` Skript.
+- **Update Status-Anzeige**: Das "Update verfügbar"-Badge und der "Update installieren"-Button blieben nach einem erfolgreichen Update sichtbar; dies wurde durch das explizite Zurücksetzen des Update-Status behoben.
 
 ### Hinweise
 - **Grafische Probleme in VMs**: Hinweise zur Behebung von "Speicherzugriffsfehlern" in virtuellen Umgebungen durch Deaktivierung der Hardware-Beschleunigung (`QTWEBENGINE_CHROMIUM_FLAGS`, `QT_XCB_GL_INTEGRATION`) wurden zur `README.md` hinzugefügt.

@@ -24,10 +24,32 @@ app = Flask(__name__)
 app.secret_key = 'adarts-browser-secret-key'  # Needed for flash messages
 app.permanent_session_lifetime = timedelta(days=31) # Valid for 31 days if remember me is checked
 
+# Global cache for update status
+UPDATE_CACHE = {'available': False}
+
+def background_update_check():
+    """Runs the update check in the background."""
+    try:
+        # Give the system some time to establish network connection
+        time.sleep(10)
+        print("[INFO] Checking for updates in background...")
+        available, msg = git_check_update()
+        if available:
+            UPDATE_CACHE['available'] = True
+            print(f"[INFO] Auto-check: {msg}")
+    except Exception as e:
+        print(f"[WARN] Auto-update check failed: {e}")
+
 @app.context_processor
 def inject_device_info():
     config = get_config()
-    return dict(global_device_name=config.device_name, global_version=config.version)
+    # Check session first (manual check override), then cache
+    is_available = session.get('update_available') or UPDATE_CACHE['available']
+    return dict(
+        global_device_name=config.device_name, 
+        global_version=config.version,
+        global_update_available=is_available
+    )
 
 def login_required(f):
     @wraps(f)
@@ -708,3 +730,7 @@ def start_server(host='0.0.0.0', port=5000):
     
     server_thread = threading.Thread(target=run, daemon=True)
     server_thread.start()
+
+    # Start auto-update check thread
+    update_thread = threading.Thread(target=background_update_check, daemon=True)
+    update_thread.start()

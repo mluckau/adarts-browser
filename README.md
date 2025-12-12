@@ -11,6 +11,7 @@ Ein spezialisierter Kiosk-Browser zur Anzeige von [Autodarts](https://autodarts.
 - **Auto-Refresh**: Lädt die Seiten in einem konfigurierbaren Intervall neu, um die Verbindung aktiv zu halten.
 - **Offline-Erkennung**: Zeigt bei Verbindungsabbruch eine informative Warteseite anstatt eines Fehlers und verbindet sich automatisch neu.
 - **QR-Code Connect**: Zeigt beim Start (und permanent im Setup-Modus) einen QR-Code auf dem Display an, um schnell zur Konfigurationsseite auf dem Smartphone zu gelangen.
+- **Automatischer Update-Check**: Prüft beim Start des Webinterfaces automatisch im Hintergrund auf Updates und zeigt einen Hinweis an.
 - **In-App Updates**: Prüfen und Installieren von Updates direkt über das Web-Interface.
 - **Benutzerdefiniertes Styling**: Injiziert eine benutzerdefinierte `style.css`-Datei, um das Aussehen der Autodarts-Seite anzupassen.
 - **Online Theme Browser**: Durchsuchen und Installieren von Community-Themes direkt in der App (mit Vorschaubildern).
@@ -92,7 +93,8 @@ Nach dem Start der Anwendung ist eine komfortable Konfigurationsoberfläche übe
 
 Über diese Oberfläche können Sie:
 - Alle Einstellungen (inkl. Zoom-Faktor, QR-Code) bequem ändern und speichern.
-- **Updates prüfen & installieren**: Mit einem Klick das System auf den neuesten Stand bringen.
+- **Automatischer Update-Check**: Das Webinterface prüft beim Start und in unregelmäßigen Abständen automatisch auf Updates.
+- **Updates prüfen & installieren**: Wenn ein Update verfügbar ist (automatisch erkannt oder manuell geprüft), wechselt der "Updates suchen"-Button zu "Update installieren".
 - Das CSS für das Styling direkt im Browser bearbeiten (**Live-Update** auf dem TV-Bildschirm).
 - **Themes verwalten**: Im CSS-Editor Themes speichern, laden oder löschen.
 - Die Anwendung neu starten, den Browser-Cache löschen oder System-Logs einsehen.

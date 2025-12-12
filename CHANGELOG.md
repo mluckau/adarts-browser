@@ -12,6 +12,8 @@ Alle Änderungen am Projekt werden in dieser Datei dokumentiert.
 - **Vereinfachte Installation**:
   - Neues `install.sh` Skript für die automatische Ersteinrichtung der virtuellen Umgebung und Abhängigkeiten.
   - `install.sh` bietet nun optional die Installation von **Build-Tools** (z.B. `gcc`) und **`unclutter`** (zum Ausblenden des Mauszeigers) an, systemabhängig (`pacman`/`apt`).
+- **Automatischer Update-Check**: Das Webinterface sucht nun automatisch im Hintergrund nach Updates.
+- **Visueller Update-Indikator**: Ein grünes "Update verfügbar!"-Badge wird in der Navigationsleiste angezeigt, wenn ein Update entdeckt wird.
 - **Automatischer Abhängigkeits-Check**: Nach einem In-App Update (`git pull`) werden nun automatisch neue Python-Abhängigkeiten (`pip install -r requirements.txt`) installiert.
 
 ### Geändert
@@ -19,8 +21,10 @@ Alle Änderungen am Projekt werden in dieser Datei dokumentiert.
 - **UI/UX**: Metadaten-Kommentare (`/* VERSION: ... */`, `/* AUTHOR: ... */` etc.) werden beim Laden von CSS-Dateien in den Editor entfernt, um eine sauberere Bearbeitungsansicht zu ermöglichen.
 - **Theme-Beitrag**: Option zur Einreichung von Themes nun auch über GitHub Issues.
 - **`start.sh`**: VM-spezifische Grafikeinstellungen wurden entfernt, um das Skript generischer zu halten.
+- **Update-Button-Logik**: Der "Updates suchen"-Button im Webinterface wechselt automatisch zu "Update installieren", wenn ein Update verfügbar ist.
 
 ### Behoben
+- **Update-Abhängigkeitsinstallation**: Problem behoben, bei dem `pip` beim In-App Update nicht korrekt gefunden wurde (`pip` wird nun als `python -m pip` aufgerufen).
 - **Theme-Metadaten-Duplikation**: Das Problem der doppelten Metadaten-Kommentare beim Speichern von Themes wurde behoben.
 - **UX-Export-Modal**: Das Export-Modal schließt sich nun automatisch nach dem Initiieren eines Downloads.
 - **Installation**: Behebung des Syntaxfehlers im `install.sh` Skript.

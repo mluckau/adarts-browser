@@ -13,7 +13,9 @@ Ein spezialisierter Kiosk-Browser zur Anzeige von [Autodarts](https://autodarts.
 - **QR-Code Connect**: Zeigt beim Start (und permanent im Setup-Modus) einen QR-Code auf dem Display an, um schnell zur Konfigurationsseite auf dem Smartphone zu gelangen.
 - **In-App Updates**: Prüfen und Installieren von Updates direkt über das Web-Interface.
 - **Benutzerdefiniertes Styling**: Injiziert eine benutzerdefinierte `style.css`-Datei, um das Aussehen der Autodarts-Seite anzupassen.
+- **Online Theme Browser**: Durchsuchen und Installieren von Community-Themes direkt in der App (mit Vorschaubildern).
 - **Theme-Verwaltung**: Speichere, lade, benenne um und lösche verschiedene CSS-Styles (Themes) über das Web-Interface.
+- **Backup & Restore**: Sichern und Wiederherstellen der gesamten Konfiguration und Themes.
 - **Logo-Integration**: Blendet ein benutzerdefiniertes Logo über den Boards ein.
 - **Fernwartung**: Änderungen an der `config.ini` werden zur Laufzeit erkannt und führen zu einem automatischen Neustart.
 - **Web-Konfiguration**: Ermöglicht die einfache Verwaltung aller Einstellungen über eine Weboberfläche (Responsive Design für Smartphones).

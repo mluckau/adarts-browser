@@ -17,7 +17,7 @@ from utils import (
     APP_DIR, CSS_PATH, THEMES_DIR, LOG_PATH, CONFIG_PATH, THEME_REPO_BASE_URL,
     trigger_restart, trigger_reload, request_clear_cache, encrypt_value,
     git_check_update, git_perform_update,
-    fetch_available_themes, fetch_theme_content, get_local_theme_version
+    fetch_available_themes, fetch_theme_content, get_local_theme_metadata
 )
 
 app = Flask(__name__)
@@ -348,14 +348,21 @@ def edit_css():
         elif action == 'install_preset':
             preset_name = request.form.get('preset_name')
             preset_file = request.form.get('preset_file')
-            preset_version = request.form.get('preset_version') # Get version from form
+            preset_version = request.form.get('preset_version')
+            preset_author = request.form.get('preset_author')
             
             if preset_name and preset_file:
                 content = fetch_theme_content(preset_file)
                 if content:
-                    # Prepend version info if available
+                    # Prepend metadata
+                    header = []
                     if preset_version:
-                        content = f"/* VERSION: {preset_version} */\n{content}"
+                        header.append(f"/* VERSION: {preset_version} */")
+                    if preset_author:
+                        header.append(f"/* AUTHOR: {preset_author} */")
+                    
+                    if header:
+                        content = "\n".join(header) + "\n" + content
                         
                     if save_theme(preset_name, content):
                         flash(f'Theme "{preset_name}" (v{preset_version}) erfolgreich installiert.', 'success')
@@ -370,7 +377,19 @@ def edit_css():
 
     # GET request
     form.css_content.data = read_css()
-    themes = list_themes()
+    
+    # Enrich local themes
+    theme_names = list_themes()
+    themes = []
+    for name in theme_names:
+        path = THEMES_DIR / f"{name}.css"
+        meta = get_local_theme_metadata(path)
+        themes.append({
+            'name': name,
+            'version': meta.get('version'),
+            'author': meta.get('author')
+        })
+
     online_themes = fetch_available_themes()
     
     # Process online themes to check installation status
@@ -385,7 +404,8 @@ def edit_css():
         
         if local_path.exists():
             theme['is_installed'] = True
-            local_ver = get_local_theme_version(local_path)
+            meta = get_local_theme_metadata(local_path)
+            local_ver = meta.get('version')
             theme['local_version'] = local_ver
             
             # Simple string comparison for versions (works for 1.0 vs 1.1, but ideally use semver)

@@ -19,7 +19,7 @@
                         <form method="POST" class="d-flex gap-2" id="theme_management_form">
                             <select name="selected_theme" id="selected_theme" class="form-select">
                                 {% for theme in themes %}
-                                    <option value="{{ theme }}">{{ theme }}</option>
+                                    <option value="{{ theme.name }}">{{ theme.name }}{% if theme.author %} ({{ theme.author }}){% endif %}</option>
                                 {% endfor %}
                             </select>
                             <input type="hidden" name="new_theme_name" id="new_theme_name">
@@ -112,6 +112,9 @@
                             <div class="flex-grow-1">
                                 <h6 class="mb-0">{{ theme.name }} <small class="text-muted">(v{{ theme.version }})</small></h6>
                                 <small class="text-muted">{{ theme.description }}</small>
+                                {% if theme.author %}
+                                    <br><small class="text-muted">Author: {{ theme.author }}</small>
+                                {% endif %}
                             </div>
 
                             <!-- Actions -->
@@ -123,6 +126,7 @@
                                             <input type="hidden" name="preset_name" value="{{ theme.name }}">
                                             <input type="hidden" name="preset_file" value="{{ theme.file }}">
                                             <input type="hidden" name="preset_version" value="{{ theme.version }}">
+                                            <input type="hidden" name="preset_author" value="{{ theme.author }}">
                                             <button type="submit" class="btn btn-warning btn-sm" title="Installierte Version: {{ theme.local_version }}">🔄 Update</button>
                                         </form>
                                     {% else %}
@@ -139,6 +143,7 @@
                                         <input type="hidden" name="preset_name" value="{{ theme.name }}">
                                         <input type="hidden" name="preset_file" value="{{ theme.file }}">
                                         <input type="hidden" name="preset_version" value="{{ theme.version }}">
+                                        <input type="hidden" name="preset_author" value="{{ theme.author }}">
                                         <button type="submit" class="btn btn-outline-info btn-sm">⬇️ Installieren</button>
                                     </form>
                                 {% endif %}

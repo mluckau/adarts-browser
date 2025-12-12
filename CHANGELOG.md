@@ -2,7 +2,24 @@
 
 Alle Änderungen am Projekt werden in dieser Datei dokumentiert.
 
-## [0.2.1] - 2025-12-11
+## [0.3.1] - 2025-12-12
+
+### Hinzugefügt
+- **Theme-Verwaltung erweitert**:
+  - Unterstützung für Theme-Autoren (Anzeige und Speicherung).
+  - **Export-Funktion**: Themes können mit eingebetteten Metadaten (Name, Autor, Beschreibung, Version) exportiert werden.
+  - **Import-Funktion**: Themes können per CSS-Datei importiert werden (optional mit Metadaten aus der Datei).
+- **Vereinfachte Installation**: Neues `install.sh` Skript für die automatische Ersteinrichtung der virtuellen Umgebung und Abhängigkeiten.
+- **Automatischer Abhängigkeits-Check**: Nach einem In-App Update (`git pull`) werden nun automatisch neue Python-Abhängigkeiten (`pip install -r requirements.txt`) installiert.
+
+### Geändert
+- **Dokumentation**: `README.md` und `install.md` wurden aktualisiert, um den neuen Installationsprozess und die Theme-Beitragsmöglichkeiten (via GitHub Issues) zu beschreiben.
+- **UI/UX**: Metadaten-Kommentare (`/* VERSION: ... */`, `/* AUTHOR: ... */` etc.) werden beim Laden von CSS-Dateien in den Editor entfernt, um eine sauberere Bearbeitungsansicht zu ermöglichen.
+- **Theme-Beitrag**: Option zur Einreichung von Themes nun auch über GitHub Issues.
+
+### Behoben
+- **Theme-Metadaten-Duplikation**: Das Problem der doppelten Metadaten-Kommentare beim Speichern von Themes wurde behoben.
+- **UX-Export-Modal**: Das Export-Modal schließt sich nun automatisch nach dem Initiieren eines Downloads.
 
 ## [0.3.0] - 2025-12-12
 
@@ -23,25 +40,6 @@ Alle Änderungen am Projekt werden in dieser Datei dokumentiert.
 ### Geändert
 - **Code-Basis**: Modularisierung (`utils.py`, `config_server.py`) und Nutzung von `netifaces`/`qrcode` für Netzwerkfunktionen.
 - **Abhängigkeiten**: Aktualisiert auf neueste Versionen (PySide6 6.10.1, Flask 3.1.2).
-
-## [0.3.1] - 2025-12-12
-
-### Hinzugefügt
-- **Theme-Verwaltung erweitert**:
-  - Unterstützung für Theme-Autoren (Anzeige und Speicherung).
-  - **Export-Funktion**: Themes können mit eingebetteten Metadaten (Name, Autor, Beschreibung, Version) exportiert werden.
-  - **Import-Funktion**: Themes können per CSS-Datei importiert werden (optional mit Metadaten aus der Datei).
-- **Vereinfachte Installation**: Neues `install.sh` Skript für die automatische Ersteinrichtung der virtuellen Umgebung und Abhängigkeiten.
-- **Automatischer Abhängigkeits-Check**: Nach einem In-App Update (`git pull`) werden nun automatisch neue Python-Abhängigkeiten (`pip install -r requirements.txt`) installiert.
-
-### Geändert
-- **Dokumentation**: `README.md` und `install.md` wurden aktualisiert, um den neuen Installationsprozess und die Theme-Beitragsmöglichkeiten (via GitHub Issues) zu beschreiben.
-- **UI/UX**: Metadaten-Kommentare (`/* VERSION: ... */`, `/* AUTHOR: ... */` etc.) werden beim Laden von CSS-Dateien in den Editor entfernt, um eine sauberere Bearbeitungsansicht zu ermöglichen.
-- **Theme-Beitrag**: Option zur Einreichung von Themes nun auch über GitHub Issues.
-
-### Behoben
-- **Theme-Metadaten-Duplikation**: Das Problem der doppelten Metadaten-Kommentare beim Speichern von Themes wurde behoben.
-- **UX-Export-Modal**: Das Export-Modal schließt sich nun automatisch nach dem Initiieren eines Downloads.
 
 ## [0.2.0] - 2025-12-09
 

@@ -247,3 +247,25 @@ Das Skript schreibt Log-Ausgaben in den Unterordner `logs/`. Sollte die Anwendun
 ```bash
 cat logs/adarts-browser.log
 ```
+
+## Fehlerbehebung
+
+### Grafische Probleme / Speicherzugriffsfehler (Segmentation Fault) in VMs
+
+Wenn die Anwendung mit einem "Speicherzugriffsfehler" (Segmentation Fault) abstürzt, insbesondere in virtuellen Maschinen (VMs) oder auf Systemen ohne dedizierte Grafikkarte/3D-Beschleunigung (z.B. einige Raspberry Pi Setups), kann dies an der standardmäßigen Nutzung der Hardware-Beschleunigung durch die grafische Oberfläche liegen.
+
+**Lösung:**
+Fügen Sie die folgenden Zeilen am Anfang Ihrer `start.sh` (nach dem Shebang `#!/bin/bash` und vor `sleep 10`) hinzu, um die Hardware-Beschleunigung für Qt und die WebEngine zu deaktivieren und Software-Rendering zu erzwingen:
+
+```bash
+export QTWEBENGINE_CHROMIUM_FLAGS="--disable-gpu --disable-software-rasterizer"
+export QT_XCB_GL_INTEGRATION=none
+```
+Dies zwingt die Anwendung, eine softwarebasierte Render-Methode zu verwenden, was solche Abstürze in Umgebungen mit eingeschränkter oder problematischer GPU-Unterstützung verhindern kann.
+
+### Mauszeiger ausblenden (Optional)
+
+Für einen reinen Anzeige-Modus (Kiosk) ist der Mauszeiger oft störend. Wir empfehlen das Tool `unclutter`.
+
+*   **Installation:** Das `install.sh` Skript fragt Sie bei der Installation, ob `unclutter` installiert werden soll.
+*   **Nutzung:** Damit der Mauszeiger verschwindet, muss `unclutter` im Hintergrund laufen. Fügen Sie dazu `unclutter &` in Ihre Autostart-Konfiguration (z.B. `.xinitrc` oder vor dem Startbefehl in der `.desktop` Datei) ein.

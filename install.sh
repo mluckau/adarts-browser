@@ -25,6 +25,24 @@ if ! command -v gcc &> /dev/null; then
     fi
 fi
 
+# 0b. Optional: Check for unclutter (hide mouse cursor)
+if ! command -v unclutter &> /dev/null; then
+    echo "Optional: 'unclutter' is not installed. It is recommended for hiding the mouse cursor."
+    read -p "Install 'unclutter' now? (y/N) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        if command -v pacman &> /dev/null; then
+            echo "Installing unclutter..."
+            sudo pacman -S --needed unclutter
+        elif command -v apt-get &> /dev/null; then
+            echo "Installing unclutter..."
+            sudo apt-get update && sudo apt-get install -y unclutter
+        else
+            echo "Warning: Could not detect package manager. Skipping 'unclutter' installation."
+        fi
+    fi
+fi
+
 # 1. Check for Python 3
 if ! command -v python3 &> /dev/null; then
     echo "Error: python3 could not be found. Please install Python 3."

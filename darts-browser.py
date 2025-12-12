@@ -6,9 +6,11 @@ import time
 import subprocess
 import base64
 import json
+from urllib.parse import quote
 from pathlib import Path
-from PySide6.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QWidget, QMessageBox
-from PySide6.QtCore import QUrl, QFile, Qt, QTimer, QFileSystemWatcher
+from PySide6.QtWidgets import QMainWindow, QApplication, QVBoxLayout, QWidget, QMessageBox, QLabel
+from PySide6.QtCore import QUrl, QFile, Qt, QTimer, QFileSystemWatcher, QByteArray
+from PySide6.QtGui import QPixmap
 from PySide6.QtWebEngineWidgets import QWebEngineView
 from PySide6.QtWebEngineCore import (
     QWebEngineProfile,
@@ -21,7 +23,8 @@ from http_server import ServeDirectoryWithHTTP
 from config_server import start_server
 from utils import (
     APP_DIR, SCRIPTS_DIR, CONFIG_PATH, CSS_PATH,
-    RESTART_TRIGGER_PATH, RELOAD_TRIGGER_PATH, CLEAR_CACHE_MARKER_PATH, LOG_PATH, LOG_DIR
+    RESTART_TRIGGER_PATH, RELOAD_TRIGGER_PATH, CLEAR_CACHE_MARKER_PATH, LOG_PATH, LOG_DIR,
+    get_local_ip_address, generate_qr_code_image
 )
 
 # --- Global Config ---
@@ -37,6 +40,8 @@ try:
         CSS_INJECT_TPL = f.read()
     with open(APP_DIR / "templates" / "offline_page.html", "r", encoding="utf-8") as f:
         OFFLINE_PAGE_TPL = f.read()
+    with open(APP_DIR / "templates" / "setup_needed.html", "r", encoding="utf-8") as f:
+        SETUP_NEEDED_TPL = f.read()
     with open(SCRIPTS_DIR / "offline_check.js", "r") as f:
         OFFLINE_CHECK_SCRIPT_TPL = f.read()
     with open(SCRIPTS_DIR / "view_mode.js", "r") as f:
@@ -222,15 +227,21 @@ class AutodartsBrowser(QMainWindow):
         super().__init__()
         self._cleanup_started = False
         self._is_restarting = False
+        self.is_setup_mode = False # Flag to track if we are in setup mode
         self.browsers = []
         self.http_server = None
         self.local_http_port = None  # Initialize local HTTP server port
+        self.qr_overlay = None # QR Code Widget
 
         self.start_http_server()
         self.init_ui()
         self.load_pages()
         self.init_refresh_timer()
         self.init_config_watcher()
+
+        # Show QR Code on startup if enabled or if in setup mode
+        if config.show_qr_on_startup or self.is_setup_mode:
+            self.show_qr_code()
 
     def init_ui(self):
         self.setWindowTitle(f"Autodarts Webbrowser v{__version__}")
@@ -244,11 +255,18 @@ class AutodartsBrowser(QMainWindow):
         self.layout = QVBoxLayout(central_widget)
         self.layout.setContentsMargins(0, 0, 0, 0)
 
+        # Helper to generate Setup Page URL with real IP
+        def get_setup_url():
+            ip = get_local_ip_address()
+            html = SETUP_NEEDED_TPL.replace("&lt;IP-ADRESSE_DIESES_GERÄTS&gt;", ip)
+            return f"data:text/html;charset=utf-8,{quote(html)}"
+
         # Create Browser 1
         url1 = config.get_board_url(1)
         if not url1:
             print("[INFO] No Board URL configured. Loading setup_needed.html.")
-            url1 = f"file://{APP_DIR / 'templates' / 'setup_needed.html'}"
+            url1 = get_setup_url()
+            self.is_setup_mode = True
 
         browser1 = BrowserView(1, url1, self)
         self.browsers.append(browser1)
@@ -257,9 +275,70 @@ class AutodartsBrowser(QMainWindow):
         # Create Browser 2 if enabled
         if config.browser_count >= 2:
             url2 = config.get_board_url(2)
+            if not url2:
+                print("[INFO] No Board 2 URL configured. Loading setup_needed.html.")
+                url2 = get_setup_url()
+                self.is_setup_mode = True
+
             browser2 = BrowserView(2, url2, self)
             self.browsers.append(browser2)
             self.layout.addWidget(browser2)
+
+    def show_qr_code(self):
+        try:
+            # Get IP and generate QR data
+            ip = get_local_ip_address()
+            url = f"http://{ip}:5000"
+            print(f"[INFO] Generating QR code for: {url}")
+            
+            # Generate Image (Bytes)
+            img_data = generate_qr_code_image(url)
+            
+            # Create Pixmap
+            pixmap = QPixmap()
+            pixmap.loadFromData(QByteArray(img_data))
+            
+            # Create Overlay Label
+            self.qr_overlay = QLabel(self)
+            self.qr_overlay.setPixmap(pixmap.scaled(200, 200, Qt.AspectRatioMode.KeepAspectRatio))
+            self.qr_overlay.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.qr_overlay.setStyleSheet("""
+                background-color: white; 
+                border: 4px solid #3498db; 
+                border-radius: 10px;
+                padding: 10px;
+            """)
+            self.qr_overlay.setFixedSize(220, 220)
+            
+            # Position bottom-right
+            self.qr_overlay.show()
+            self.qr_overlay.raise_()
+            
+            # Auto-hide timer only if NOT in setup mode
+            if not self.is_setup_mode:
+                duration_ms = config.qr_show_duration * 1000
+                QTimer.singleShot(duration_ms, self.hide_qr_code)
+            else:
+                print("[INFO] Setup mode active: QR code will remain visible.")
+            
+        except Exception as e:
+            print(f"[ERROR] Failed to show QR code: {e}")
+
+    def hide_qr_code(self):
+        if self.qr_overlay:
+            self.qr_overlay.hide()
+            self.qr_overlay.deleteLater()
+            self.qr_overlay = None
+
+    def resizeEvent(self, event):
+        # Update QR code position if it exists
+        if hasattr(self, 'qr_overlay') and self.qr_overlay and self.qr_overlay.isVisible():
+            # Bottom Right Corner with padding
+            margin = 20
+            x = self.width() - self.qr_overlay.width() - margin
+            y = self.height() - self.qr_overlay.height() - margin
+            self.qr_overlay.move(x, y)
+        super().resizeEvent(event)
 
     def start_http_server(self):
         if config.logos_enabled and config.logos_local:  # Only start if local logos are enabled

@@ -6,15 +6,23 @@
 <div class="row justify-content-center">
     <div class="col-md-8">
         
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-center mb-4 gap-3">
             <h1 class="mb-0">Konfiguration</h1>
-            <div class="btn-group">
+            <div class="d-flex flex-wrap gap-2 justify-content-center justify-content-md-end">
+                {% if session.get('update_available') %}
+                    <button type="button" class="btn btn-success" onclick="if(confirm('Update wirklich installieren? Die Anwendung wird neu gestartet.')) document.getElementById('update-form').submit();">⬆️ Update installieren</button>
+                {% else %}
+                    <button type="button" class="btn btn-info" onclick="document.getElementById('check-update-form').submit();">🔄 Updates suchen</button>
+                {% endif %}
+                
                 <button type="button" class="btn btn-primary" onclick="document.getElementById('reload-form').submit();">Seiten neu laden</button>
                 <button type="button" class="btn btn-warning" onclick="if(confirm('Cache wirklich löschen? Sie müssen sich danach neu einloggen.')) document.getElementById('clearcache-form').submit();">Cache löschen</button>
                 <button type="button" class="btn btn-danger" onclick="document.getElementById('restart-form').submit();">Neustart erzwingen</button>
             </div>
         </div>
 
+        <form id="check-update-form" action="{{ url_for('check_update') }}" method="POST" style="display: none;"></form>
+        <form id="update-form" action="{{ url_for('perform_update') }}" method="POST" style="display: none;"></form>
         <form id="restart-form" action="{{ url_for('restart_app') }}" method="POST" style="display: none;"></form>
         <form id="clearcache-form" action="{{ url_for('clear_cache') }}" method="POST" style="display: none;"></form>
         <form id="reload-form" action="{{ url_for('reload_pages') }}" method="POST" style="display: none;"></form>
@@ -49,6 +57,15 @@
                                         <div class="mb-3">
                                             <label for="screen" class="form-label">{{ form.screen.label }}</label>
                                             {{ form.screen(class="form-control", type="number") }}
+                                        </div>
+                                        <hr>
+                                        <div class="form-check mb-3">
+                                            {{ form.show_qr(class="form-check-input") }}
+                                            <label class="form-check-label" for="show_qr">{{ form.show_qr.label }}</label>
+                                        </div>
+                                        <div class="mb-3">
+                                            <label for="qr_duration" class="form-label">{{ form.qr_duration.label }}</label>
+                                            {{ form.qr_duration(class="form-control", type="number") }}
                                         </div>
                                     </div>
                                 </div>
@@ -160,11 +177,46 @@
                 </div>
             </div>
 
+            <!-- Maintenance & Backup -->
+            <div class="card">
+                <div class="section-header">Backup & Wiederherstellung</div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <h5>Backup erstellen</h5>
+                            <p class="text-muted small">Lädt die aktuelle Konfiguration (config.ini), Styles (style.css) und alle Themes als ZIP-Datei herunter.</p>
+                            <a href="{{ url_for('create_backup') }}" class="btn btn-outline-primary w-100">
+                                📥 Backup herunterladen
+                            </a>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <h5>Backup wiederherstellen</h5>
+                            <p class="text-muted small">Laden Sie eine zuvor erstellte ZIP-Datei hoch, um die Konfiguration wiederherzustellen. <strong>Achtung: Überschreibt aktuelle Einstellungen!</strong></p>
+                            <!-- We can't nest forms in HTML standard, so we use input+button and JS to submit to a hidden endpoint or use the main form? -->
+                            <!-- Better: standalone form logic inside this block, but we are inside the main <form>. Nested forms are invalid. -->
+                            <!-- Solution: Put the file input here, but use 'formaction' on the button? No, that submits the whole big form including file. -->
+                            <!-- Alternative: Use an external form and just button here? -->
+                            <!-- Let's use the 'form' attribute in HTML5 to link inputs to a specific form outside the main form. -->
+                            
+                            <div class="input-group">
+                                <input type="file" class="form-control" id="backup_file" name="backup_file" form="restore-form" accept=".zip" required>
+                                <button class="btn btn-outline-danger" type="button" onclick="if(confirm('Wirklich wiederherstellen? Aktuelle Einstellungen gehen verloren!')) document.getElementById('restore-form').submit();">
+                                    📤 Hochladen
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <div class="d-grid gap-2 mb-5">
                 <button type="submit" class="btn btn-primary btn-lg">Speichern & Neustarten</button>
             </div>
 
         </form>
+        
+        <!-- External form for restore to avoid nesting -->
+        <form id="restore-form" action="{{ url_for('restore_backup') }}" method="POST" enctype="multipart/form-data" style="display: none;"></form>
     </div>
 </div>
 {% endblock %}

@@ -1,19 +1,28 @@
 import threading
 import time
+import zipfile
+import io
+import os
+import shutil
+from datetime import timedelta
 from functools import wraps
-from flask import Flask, render_template, request, flash, redirect, url_for, session
+from flask import Flask, render_template, request, flash, redirect, url_for, session, send_file, make_response
 from wtforms import Form, StringField, IntegerField, BooleanField, PasswordField, TextAreaField, FloatField, validators, SelectField
 from werkzeug.security import generate_password_hash, check_password_hash
+from werkzeug.utils import secure_filename
 
 # Import centralized configuration and utilities
 from config import get_config
 from utils import (
-    APP_DIR, CSS_PATH, THEMES_DIR, LOG_PATH,
-    trigger_restart, trigger_reload, request_clear_cache, encrypt_value
+    APP_DIR, CSS_PATH, THEMES_DIR, LOG_PATH, CONFIG_PATH, THEME_REPO_BASE_URL,
+    trigger_restart, trigger_reload, request_clear_cache, encrypt_value,
+    git_check_update, git_perform_update,
+    fetch_available_themes, fetch_theme_content, get_local_theme_version
 )
 
 app = Flask(__name__)
 app.secret_key = 'adarts-browser-secret-key'  # Needed for flash messages
+app.permanent_session_lifetime = timedelta(days=31) # Valid for 31 days if remember me is checked
 
 @app.context_processor
 def inject_device_info():
@@ -35,6 +44,7 @@ def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
+        remember = request.form.get('remember')
         
         config = get_config()
         # Direct access to config properties for security check
@@ -43,6 +53,11 @@ def login():
         
         if username == conf_user and check_password_hash(conf_hash, password):
             session['logged_in'] = True
+            if remember:
+                session.permanent = True
+            else:
+                session.permanent = False
+                
             flash('Erfolgreich eingeloggt.', 'success')
             next_url = request.args.get('next')
             return redirect(next_url or url_for('index'))
@@ -93,6 +108,10 @@ class ConfigForm(Form):
     security_enable = BooleanField('Passwortschutz für Konfiguration aktivieren')
     security_username = StringField('Benutzername (Standard: admin)')
     security_new_password = PasswordField('Neues Passwort setzen (leer lassen zum Beibehalten)')
+    
+    # Advanced / QR
+    show_qr = BooleanField('QR-Code beim Start anzeigen')
+    qr_duration = IntegerField('Anzeigedauer des QR-Codes (Sekunden)')
 
 class CSSForm(Form):
     css_content = TextAreaField('CSS Inhalt')
@@ -114,6 +133,9 @@ def write_css(content):
     except Exception:
         return False
 
+def _sanitize_theme_name(name):
+    return "".join([c for c in name if c.isalpha() or c.isdigit() or c in (' ', '-', '_')]).strip()
+
 # --- Theme Helper Functions ---
 def list_themes():
     if not THEMES_DIR.exists():
@@ -123,8 +145,8 @@ def list_themes():
 def save_theme(name, content):
     if not THEMES_DIR.exists():
         THEMES_DIR.mkdir(exist_ok=True)
-    # Sanitize filename
-    safe_name = "".join([c for c in name if c.isalpha() or c.isdigit() or c in (' ', '-', '_')]).strip()
+    
+    safe_name = _sanitize_theme_name(name)
     if not safe_name:
         return False
     try:
@@ -152,8 +174,7 @@ def rename_theme(old_name, new_name):
     if not THEMES_DIR.exists():
         return False
     
-    # Sanitize new name
-    safe_new_name = "".join([c for c in new_name if c.isalpha() or c.isdigit() or c in (' ', '-', '_')]).strip()
+    safe_new_name = _sanitize_theme_name(new_name)
     if not safe_new_name:
         return False
         
@@ -224,6 +245,10 @@ def index():
         if new_pass:
             hashed_pw = generate_password_hash(new_pass)
             config.set('security', 'password_hash', hashed_pw)
+            
+        # Advanced / QR
+        config.set('main', 'show_qr', str(form.show_qr.data).lower())
+        config.set('main', 'qr_duration', form.qr_duration.data)
 
         config.save()
         trigger_restart()
@@ -238,6 +263,10 @@ def index():
         form.refresh_interval_min.data = config.getint('main', 'refresh_interval_min', fallback=0)
         form.zoom_factor.data = config.getfloat('main', 'zoom_factor', fallback=1.0)
         form.screen.data = config.getint('main', 'screen', fallback=0)
+        
+        # QR Defaults
+        form.show_qr.data = config.getboolean('main', 'show_qr', fallback=True)
+        form.qr_duration.data = config.getint('main', 'qr_duration', fallback=15)
         
         form.board1_id.data = config.get('boards', 'board1_id', fallback='')
         form.board2_id.data = config.get('boards', 'board2_id', fallback='')
@@ -316,12 +345,62 @@ def edit_css():
             else:
                 flash('Fehler beim Umbenennen (Name ungültig oder existiert bereits?).', 'danger')
 
+        elif action == 'install_preset':
+            preset_name = request.form.get('preset_name')
+            preset_file = request.form.get('preset_file')
+            preset_version = request.form.get('preset_version') # Get version from form
+            
+            if preset_name and preset_file:
+                content = fetch_theme_content(preset_file)
+                if content:
+                    # Prepend version info if available
+                    if preset_version:
+                        content = f"/* VERSION: {preset_version} */\n{content}"
+                        
+                    if save_theme(preset_name, content):
+                        flash(f'Theme "{preset_name}" (v{preset_version}) erfolgreich installiert.', 'success')
+                    else:
+                        flash('Fehler beim Speichern des Themes.', 'danger')
+                else:
+                    flash('Fehler beim Herunterladen des Themes (Verbindung oder Datei?).', 'danger')
+            else:
+                flash('Ungültige Preset-Daten.', 'danger')
+
         return redirect(url_for('edit_css'))
 
     # GET request
     form.css_content.data = read_css()
     themes = list_themes()
-    return render_template('edit_css.html', form=form, themes=themes)
+    online_themes = fetch_available_themes()
+    
+    # Process online themes to check installation status
+    for theme in online_themes:
+        # Determine local filename
+        safe_name = _sanitize_theme_name(theme.get('name', ''))
+        local_path = THEMES_DIR / f"{safe_name}.css"
+        
+        theme['is_installed'] = False
+        theme['update_available'] = False
+        theme['local_version'] = None
+        
+        if local_path.exists():
+            theme['is_installed'] = True
+            local_ver = get_local_theme_version(local_path)
+            theme['local_version'] = local_ver
+            
+            # Simple string comparison for versions (works for 1.0 vs 1.1, but ideally use semver)
+            online_ver = theme.get('version')
+            if online_ver and local_ver and online_ver > local_ver:
+                theme['update_available'] = True
+            # Also if installed but no local version found (legacy installation), treat as update available if online has version
+            if online_ver and not local_ver:
+                 theme['update_available'] = True
+
+    response = make_response(render_template('edit_css.html', form=form, themes=themes, presets=online_themes, repo_url=THEME_REPO_BASE_URL))
+    response.headers["Cache-Control"] = "no-cache, no-store, must-revalidate"
+    response.headers["Pragma"] = "no-cache"
+    response.headers["Expires"] = "0"
+    return response
 
 
 @app.route('/restart', methods=['POST'])
@@ -368,6 +447,125 @@ def view_logs():
                 "Dies ist normal, wenn die Anwendung nicht über das Startskript gestartet wurde."]
     
     return render_template('logs.html', logs=logs)
+
+
+@app.route('/check_update', methods=['POST'])
+@login_required
+def check_update():
+    available, msg = git_check_update()
+    if available:
+        flash(f"{msg}", 'info')
+        # Store update availability in session to show update button
+        session['update_available'] = True
+    else:
+        flash(f"{msg}", 'success')
+        session.pop('update_available', None)
+    
+    return redirect(url_for('index'))
+
+@app.route('/perform_update', methods=['POST'])
+@login_required
+def perform_update():
+    success, msg = git_perform_update()
+    if success:
+        flash("Update erfolgreich installiert! Anwendung wird neu gestartet...", 'success')
+        session.pop('update_available', None)
+        # Trigger restart slightly delayed to allow flash message to be rendered? 
+        # Actually restart will kill server, so maybe just trigger it and hope browser reconnects.
+        trigger_restart()
+    else:
+        flash(f"Fehler beim Update: {msg}", 'danger')
+        
+    return redirect(url_for('index'))
+
+@app.route('/backup')
+@login_required
+def create_backup():
+    try:
+        # Create in-memory zip
+        memory_file = io.BytesIO()
+        with zipfile.ZipFile(memory_file, 'w', zipfile.ZIP_DEFLATED) as zf:
+            # Add config.ini
+            if CONFIG_PATH.exists():
+                zf.write(CONFIG_PATH, arcname='config.ini')
+            
+            # Add style.css
+            if CSS_PATH.exists():
+                zf.write(CSS_PATH, arcname='style.css')
+            
+            # Add themes folder
+            if THEMES_DIR.exists():
+                for root, dirs, files in os.walk(THEMES_DIR):
+                    for file in files:
+                        file_path = os.path.join(root, file)
+                        # Archive name relative to THEMES_DIR parent, so it includes 'themes/'
+                        arcname = os.path.relpath(file_path, APP_DIR)
+                        zf.write(file_path, arcname=arcname)
+        
+        memory_file.seek(0)
+        timestamp = time.strftime("%Y%m%d-%H%M%S")
+        return send_file(
+            memory_file,
+            mimetype='application/zip',
+            as_attachment=True,
+            download_name=f'adarts-backup-{timestamp}.zip'
+        )
+    except Exception as e:
+        flash(f'Fehler beim Erstellen des Backups: {e}', 'danger')
+        return redirect(url_for('index'))
+
+@app.route('/restore', methods=['POST'])
+@login_required
+def restore_backup():
+    if 'backup_file' not in request.files:
+        flash('Keine Datei ausgewählt.', 'danger')
+        return redirect(url_for('index'))
+    
+    file = request.files['backup_file']
+    if file.filename == '':
+        flash('Keine Datei ausgewählt.', 'danger')
+        return redirect(url_for('index'))
+
+    if file and file.filename.endswith('.zip'):
+        try:
+            # Verify zip content first
+            with zipfile.ZipFile(file) as zf:
+                # Basic validation: check for expected files
+                file_names = zf.namelist()
+                if not any(f in file_names for f in ['config.ini', 'style.css']) and not any(f.startswith('themes/') for f in file_names):
+                    flash('Ungültiges Backup-Archiv: Weder config.ini noch style.css oder Themes gefunden.', 'warning')
+                    return redirect(url_for('index'))
+                
+                # Extract
+                # We extract to APP_DIR. 
+                # Warning: zipfile.extractall can be dangerous if zip contains absolute paths or '..'.
+                # But we trust the user here (authenticated admin).
+                for member in zf.infolist():
+                    # Security: skip absolute paths or ..
+                    if member.filename.startswith('/') or '..' in member.filename:
+                        continue
+                        
+                    # Target path
+                    target_path = APP_DIR / member.filename
+                    
+                    # Create directory if needed
+                    if member.is_dir():
+                        target_path.mkdir(parents=True, exist_ok=True)
+                    else:
+                        target_path.parent.mkdir(parents=True, exist_ok=True)
+                        with open(target_path, 'wb') as f:
+                            f.write(zf.read(member))
+            
+            flash('Backup erfolgreich wiederhergestellt! Anwendung startet neu...', 'success')
+            trigger_restart()
+            return redirect(url_for('index'))
+            
+        except Exception as e:
+            flash(f'Fehler beim Wiederherstellen: {e}', 'danger')
+            return redirect(url_for('index'))
+    else:
+        flash('Nur .zip Dateien sind erlaubt.', 'danger')
+        return redirect(url_for('index'))
 
 
 def start_server(host='0.0.0.0', port=5000):

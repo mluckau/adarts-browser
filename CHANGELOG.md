@@ -2,6 +2,28 @@
 
 Alle Änderungen am Projekt werden in dieser Datei dokumentiert.
 
+## [0.2.1] - 2025-12-11
+
+## [0.3.0] - 2025-12-12
+
+### Hinzugefügt
+- **Online Theme Browser**: Integrierter Store zum Durchsuchen, Installieren und Aktualisieren von Community-Themes (mit Vorschaubildern).
+- **Backup & Restore**: Vollständige Sicherung und Wiederherstellung der Konfiguration und Themes als ZIP-Datei.
+- **In-App Update**: System-Updates (Git Pull) können direkt über das Web-Interface geprüft und installiert werden.
+- **QR-Code Connect**:
+  - Automatisches Overlay beim Start (konfigurierbar) zeigt die IP-Adresse des Web-Interfaces.
+  - Permanenter "Setup-Modus" mit QR-Code, wenn noch keine Board-ID konfiguriert ist.
+- **Erweiterte Versionierung**: SemVer-basierte Versionsanzeige (z.B. `v0.3.0-5-g9a2b3c`) in Titelzeile und Web-Footer.
+- **Web-Interface**:
+  - **Responsive Design**: Optimierte Darstellung für Smartphones.
+  - **Login-Komfort**: "Angemeldet bleiben"-Option (31 Tage).
+  - **Feedback**: Erfolgs- und Fehlermeldungen blenden sich automatisch aus.
+- **Dynamische Setup-Seite**: Zeigt die tatsächliche IP-Adresse des Geräts an, um die Einrichtung zu erleichtern.
+
+### Geändert
+- **Code-Basis**: Modularisierung (`utils.py`, `config_server.py`) und Nutzung von `netifaces`/`qrcode` für Netzwerkfunktionen.
+- **Abhängigkeiten**: Aktualisiert auf neueste Versionen (PySide6 6.10.1, Flask 3.1.2).
+
 ## [0.2.0] - 2025-12-09
 
 ### Hinzugefügt

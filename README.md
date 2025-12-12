@@ -10,13 +10,16 @@ Ein spezialisierter Kiosk-Browser zur Anzeige von [Autodarts](https://autodarts.
 - **Automatischer Login**: Kann sich automatisch in Autodarts einloggen, um private Boards anzuzeigen.
 - **Auto-Refresh**: Lädt die Seiten in einem konfigurierbaren Intervall neu, um die Verbindung aktiv zu halten.
 - **Offline-Erkennung**: Zeigt bei Verbindungsabbruch eine informative Warteseite anstatt eines Fehlers und verbindet sich automatisch neu.
-- **Benutzerdefiniertes Styling**: Injiziert eine benutzerdefinierte `style.css`-Datei, um das Aussehen der Autodarts-Seite anzupassen (z.B. Ausblenden unnötiger Elemente).
+- **QR-Code Connect**: Zeigt beim Start (und permanent im Setup-Modus) einen QR-Code auf dem Display an, um schnell zur Konfigurationsseite auf dem Smartphone zu gelangen.
+- **In-App Updates**: Prüfen und Installieren von Updates direkt über das Web-Interface.
+- **Benutzerdefiniertes Styling**: Injiziert eine benutzerdefinierte `style.css`-Datei, um das Aussehen der Autodarts-Seite anzupassen.
+- **Online Theme Browser**: Durchsuchen und Installieren von Community-Themes direkt in der App (mit Vorschaubildern).
 - **Theme-Verwaltung**: Speichere, lade, benenne um und lösche verschiedene CSS-Styles (Themes) über das Web-Interface.
+- **Backup & Restore**: Sichern und Wiederherstellen der gesamten Konfiguration und Themes.
 - **Logo-Integration**: Blendet ein benutzerdefiniertes Logo über den Boards ein.
-- **Fernwartung**: Änderungen an der `config.ini` werden zur Laufzeit erkannt und führen zu einem automatischen Neustart der Anwendung.
-- **Web-Konfiguration**: Ermöglicht die einfache Verwaltung aller Einstellungen über eine Weboberfläche.
+- **Fernwartung**: Änderungen an der `config.ini` werden zur Laufzeit erkannt und führen zu einem automatischen Neustart.
+- **Web-Konfiguration**: Ermöglicht die einfache Verwaltung aller Einstellungen über eine Weboberfläche (Responsive Design für Smartphones).
 - **Log-Viewer**: Anzeige der System-Logs direkt im Web-Interface zur einfachen Fehlersuche.
-- **Seiten-Reload**: Manuelles Neuladen der Boards per Web-Interface ohne kompletten Neustart.
 - **Headless-Betrieb**: Für Systeme ohne direkt angeschlossene Eingabegeräte konzipiert.
 
 ## Installation
@@ -24,6 +27,7 @@ Ein spezialisierter Kiosk-Browser zur Anzeige von [Autodarts](https://autodarts.
 ### 1. Voraussetzungen
 - Python 3.x muss installiert sein.
 - Ein System mit grafischer Oberfläche (z.B. eine minimale Linux-Distribution mit einem X-Server).
+- Git (für Updates).
 
 ### 2. Repository klonen
 Öffnen Sie ein Terminal und klonen Sie das Repository:
@@ -63,20 +67,17 @@ Die Anwendung startet im Vollbildmodus auf dem konfigurierten Bildschirm. Um sie
 
 ## Web-Konfiguration
 
-Nach dem Start der Anwendung ist eine komfortable Konfigurationsoberfläche über den Webbrowser erreichbar.
+Nach dem Start der Anwendung ist eine komfortable Konfigurationsoberfläche über den Webbrowser erreichbar. Ein **QR-Code auf dem Display** erleichtert den ersten Zugriff.
 
-1.  Öffnen Sie auf einem anderen Gerät (Smartphone, PC) im gleichen Netzwerk einen Browser.
-2.  Geben Sie die IP-Adresse des Geräts, auf dem die Anwendung läuft, gefolgt von Port `5000` ein:
-    `http://<IP-Adresse>:5000` (z.B. `http://192.168.178.50:5000`)
-    Wenn Sie den Browser auf dem gleichen Gerät öffnen, können Sie auch `http://localhost:5000` verwenden.
+1.  Scannen Sie den QR-Code auf dem Display oder öffnen Sie auf einem anderen Gerät einen Browser.
+2.  Geben Sie die IP-Adresse des Geräts ein: `http://<IP-Adresse>:5000`
 
 Über diese Oberfläche können Sie:
-- Alle Einstellungen (inkl. Zoom-Faktor) bequem ändern und speichern.
+- Alle Einstellungen (inkl. Zoom-Faktor, QR-Code) bequem ändern und speichern.
+- **Updates prüfen & installieren**: Mit einem Klick das System auf den neuesten Stand bringen.
 - Das CSS für das Styling direkt im Browser bearbeiten (**Live-Update** auf dem TV-Bildschirm).
-- **Themes verwalten**: Im CSS-Editor können Sie Ihr aktuelles CSS als Theme speichern, vorhandene Themes laden oder löschen.
-- Die Anwendung neu starten oder die angezeigten Seiten neu laden.
-- Den Browser-Cache löschen (hilfreich bei Anzeigeproblemen).
-- System-Logs einsehen, um Fehler zu diagnostizieren.
+- **Themes verwalten**: Im CSS-Editor Themes speichern, laden oder löschen.
+- Die Anwendung neu starten, den Browser-Cache löschen oder System-Logs einsehen.
 
 ## Manuelle Konfiguration (`config.ini`)
 
@@ -88,28 +89,32 @@ Alternativ zur Web-Oberfläche kann die Anwendung auch direkt über die `config.
 Allgemeine Einstellungen für die Anwendung.
 
 - **`device_name`**
-  - Ein optionaler Name für das Gerät (z.B. "Board Keller"). Wird im Web-Interface angezeigt.
+  - Ein optionaler Name für das Gerät.
   - **Standard**: `""`
 
-- **`device_id`**
-  - Eine eindeutige ID (UUID) für diese Installation. Wird beim ersten Start automatisch generiert.
-  - *Bitte nicht manuell ändern, außer Sie wissen, was Sie tun.*
-
 - **`browsers`**
-  - Definiert die Anzahl der anzuzeigenden Browser-Fenster (Boards).
-  - **Werte**: `1` oder `2`
+  - Anzahl der Browser-Fenster (1 oder 2).
   - **Standard**: `1`
 
+- **`show_qr`**
+  - Zeigt beim Start einen QR-Code mit der Config-URL an.
+  - **Werte**: `true` oder `false`
+  - **Standard**: `true`
+
+- **`qr_duration`**
+  - Anzeigedauer des QR-Codes in Sekunden.
+  - **Standard**: `15`
+
 - **`refresh_interval_min`**
-  - Das Intervall in Minuten, nach dem alle Seiten automatisch neu geladen werden.
+  - Intervall in Minuten für automatischen Reload.
   - **Standard**: `0`
 
 - **`zoom_factor`**
-  - Skaliert den Inhalt der Webseiten.
+  - Skaliert den Inhalt.
   - **Standard**: `1.0`
 
 - **`screen`**
-  - Der Index des Bildschirms für den Vollbildmodus.
+  - Index des Bildschirms.
   - **Standard**: `0`
 
 ---

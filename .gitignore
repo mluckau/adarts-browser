@@ -21,3 +21,7 @@ current_packages.txt
 logs
 .secret.key
 .reload_trigger
+themes
+theme_repo_setup/themes.json
+style.css
+pr.md

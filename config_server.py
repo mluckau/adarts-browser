@@ -116,6 +116,21 @@ class ConfigForm(Form):
 class CSSForm(Form):
     css_content = TextAreaField('CSS Inhalt')
 
+def strip_css_metadata(content):
+    """Removes metadata comments (VERSION, AUTHOR, NAME, DESCRIPTION) from CSS content."""
+    if not content: return ""
+    lines = content.splitlines()
+    filtered = []
+    for line in lines:
+        check = line.strip()
+        if (check.startswith('/* VERSION:') or
+            check.startswith('/* AUTHOR:') or
+            check.startswith('/* NAME:') or
+            check.startswith('/* DESCRIPTION:')):
+            continue
+        filtered.append(line)
+    return "\n".join(filtered)
+
 def read_css():
     if not CSS_PATH.exists():
         return ""
@@ -323,9 +338,11 @@ def edit_css():
             theme_name = request.form.get('selected_theme')
             content = load_theme(theme_name)
             if content is not None:
-                form.css_content.data = content
-                # Optionally save immediately to apply
-                write_css(content)
+                # Strip metadata for editor view
+                clean_content = strip_css_metadata(content)
+                form.css_content.data = clean_content
+                # Save the CLEAN content to style.css (active style)
+                write_css(clean_content)
                 flash(f'Theme "{theme_name}" geladen und angewendet.', 'success')
             else:
                 flash('Fehler beim Laden des Themes.', 'danger')
@@ -354,6 +371,9 @@ def edit_css():
             if preset_name and preset_file:
                 content = fetch_theme_content(preset_file)
                 if content:
+                    # Strip existing metadata to avoid duplication
+                    content = strip_css_metadata(content)
+
                     # Prepend metadata
                     header = []
                     if preset_version:
@@ -376,7 +396,8 @@ def edit_css():
         return redirect(url_for('edit_css'))
 
     # GET request
-    form.css_content.data = read_css()
+    raw_content = read_css()
+    form.css_content.data = strip_css_metadata(raw_content)
     
     # Enrich local themes
     theme_names = list_themes()

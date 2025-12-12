@@ -609,6 +609,8 @@ def perform_update():
     if success:
         flash("Update erfolgreich installiert! Anwendung wird neu gestartet...", 'success')
         session.pop('update_available', None)
+        # Clear global cache immediately so the UI reflects the new state
+        UPDATE_CACHE['available'] = False
         # Trigger restart slightly delayed to allow flash message to be rendered? 
         # Actually restart will kill server, so maybe just trigger it and hope browser reconnects.
         trigger_restart()

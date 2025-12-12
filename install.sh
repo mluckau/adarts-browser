@@ -55,7 +55,7 @@ if [ ! -f "config.ini" ]; then
         cp config_example.ini config.ini
     else
         echo "No config.ini found. A default configuration will be created on first start."
-    end
+    fi
 fi
 
 echo ""

@@ -22,3 +22,4 @@ logs
 .secret.key
 .reload_trigger
 themes
+theme_repo_setup/themes.json

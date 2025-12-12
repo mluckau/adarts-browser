@@ -17,8 +17,7 @@ from utils import (
     APP_DIR, CSS_PATH, THEMES_DIR, LOG_PATH, CONFIG_PATH, THEME_REPO_BASE_URL,
     trigger_restart, trigger_reload, request_clear_cache, encrypt_value,
     git_check_update, git_perform_update,
-    fetch_available_themes, fetch_theme_content, get_local_theme_version,
-    _sanitize_theme_name
+    fetch_available_themes, fetch_theme_content, get_local_theme_version
 )
 
 app = Flask(__name__)

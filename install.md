@@ -44,34 +44,35 @@ Als Client empfehle ich "Remmina"
 
 ## Autodartsbrowser Setup
 
-Repository clonen
+**Für die Erstinstallation nutzen Sie bitte das `install.sh` Skript.**
 
+Dieses Skript kümmert sich automatisch um die Erstellung der virtuellen Umgebung und die Installation aller notwendigen Abhängigkeiten.
+
+1.  **Repository klonen:**
+    ```bash
+    git clone https://github.com/mluckau/adarts-browser.git
+    cd adarts-browser
+    ```
+2.  **Installation starten:**
+    ```bash
+    ./install.sh
+    ```
+    Nach Abschluss des Skripts ist die Umgebung eingerichtet.
+
+### Manuelle Einrichtung (nur bei Bedarf)
+Falls Sie die Schritte manuell ausführen möchten:
 ``` bash
-git clone https://github.com/mluckau/adarts-browser.git
-```
-
-``` bash
-cd adarts-browser
-
 python -m venv .venv
-
 source .venv/bin/activate
-
 pip install -r requirements.txt
-
-cp config_example.ini config.ini
+# Optional: cp config_example.ini config.ini (falls config_example.ini existiert und Sie eine Basis-Konfiguration wünschen)
 ```
 
-config.ini bearbeiten (optional, kann auch später über das Web-Interface erledigt werden)
+### Konfiguration
+Die `config.ini` wird beim ersten Start der Anwendung automatisch erstellt, falls sie noch nicht vorhanden ist. Sie können die Einstellungen bequem über das Web-Interface vornehmen oder die `config.ini` manuell bearbeiten (optional):
 
 ```bash
 nano config.ini
-```
-
-Anwendung starten
-
-``` bash
-python darts-browser.py 
 ```
 
 Nach dem Start ist die Konfiguration bequem über den Browser unter `http://<IP-Adresse>:5000` erreichbar. Dort kann auch das Styling aktiviert werden.

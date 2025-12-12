@@ -58,21 +58,17 @@ git clone https://github.com/mluckau/adarts-browser.git
 cd adarts-browser
 ```
 
-### 3. Virtuelle Umgebung einrichten (Empfohlen)
-Erstellen und aktivieren Sie eine virtuelle Umgebung, um Abhängigkeiten isoliert zu halten:
-```bash
-python -m venv .venv
-source .venv/bin/activate
-```
-*(Hinweis: Unter Windows lautet der Aktivierungsbefehl `.\.venv\Scripts\activate`)*
+### 3. Virtuelle Umgebung und Abhängigkeiten einrichten (Empfohlen)
 
-### 4. Abhängigkeiten installieren
-Installieren Sie die notwendigen Python-Pakete:
+**Einfache Installation mit dem Skript:**
+Führen Sie das `install.sh` Skript aus, um die virtuelle Umgebung zu erstellen und alle Abhängigkeiten zu installieren:
 ```bash
-pip install -r requirements.txt
+./install.sh
 ```
 
-### 5. Konfiguration erstellen (Optional)
+Für eine manuelle Einrichtung, folgen Sie den Schritten in `install.md`.
+
+### 4. Konfiguration erstellen (Optional)
 Wenn Sie die Konfiguration manuell über die `config.ini` vornehmen möchten, kopieren Sie die Beispielkonfiguration:
 ```bash
 cp config_example.ini config.ini
@@ -81,11 +77,11 @@ Alternativ können Sie die Konfiguration auch bequem über das Web-Interface vor
 
 ## Anwendung starten
 
-Um die Anwendung zu starten, führen Sie das Hauptskript aus, während Sie sich im Projektverzeichnis befinden und die virtuelle Umgebung aktiviert ist:
+Um die Anwendung zu starten, nutzen Sie das mitgelieferte Startskript:
 ```bash
-python darts-browser.py
+./start.sh
 ```
-Die Anwendung startet im Vollbildmodus auf dem konfigurierten Bildschirm. Um sie zu beenden, können Sie im Terminal `Strg+C` drücken.
+Dieses Skript aktiviert automatisch die virtuelle Umgebung und startet die Anwendung im Vollbildmodus auf dem konfigurierten Bildschirm. Um sie zu beenden, können Sie im Terminal `Strg+C` drücken.
 
 ## Web-Konfiguration
 

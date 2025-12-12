@@ -215,13 +215,21 @@ def git_check_update():
 
 def git_perform_update():
     """
-    Performs a git pull.
+    Performs a git pull and installs dependencies.
     Returns: (success: bool, message: str)
     """
     try:
-        # git pull
-        output = subprocess.check_output(['git', 'pull'], stderr=subprocess.STDOUT).decode('utf-8')
-        return True, f"Update erfolgreich!\n{output}"
+        # 1. git pull
+        pull_output = subprocess.check_output(['git', 'pull'], stderr=subprocess.STDOUT).decode('utf-8')
+        
+        # 2. pip install -r requirements.txt
+        # We assume pip is available in the current environment
+        pip_output = subprocess.check_output(
+            ['pip', 'install', '-r', 'requirements.txt'], 
+            stderr=subprocess.STDOUT
+        ).decode('utf-8')
+        
+        return True, f"Update erfolgreich!\nGit:\n{pull_output}\nPip:\n{pip_output}"
     except subprocess.CalledProcessError as e:
         return False, f"Update fehlgeschlagen:\n{e.output.decode('utf-8')}"
     except Exception as e:

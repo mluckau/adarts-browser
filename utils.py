@@ -118,10 +118,10 @@ def fetch_theme_content(filename):
 def get_local_theme_metadata(file_path):
     """
     Reads the first few lines of a CSS file to extract metadata.
-    Looks for /* VERSION: ... */ and /* AUTHOR: ... */
-    Returns a dict with keys 'version' and 'author'.
+    Looks for /* VERSION: ... */, /* AUTHOR: ... */, /* NAME: ... */, /* DESCRIPTION: ... */
+    Returns a dict with keys 'version', 'author', 'name', 'description'.
     """
-    metadata = {'version': None, 'author': None}
+    metadata = {'version': None, 'author': None, 'name': None, 'description': None}
     try:
         if not file_path.exists():
             return metadata
@@ -132,18 +132,24 @@ def get_local_theme_metadata(file_path):
                 if not line: continue
                 
                 if 'VERSION:' in line:
-                    # Extract text after VERSION: and before closing */
                     parts = line.split('VERSION:')
                     if len(parts) > 1:
-                        val = parts[1].split('*/')[0].strip()
-                        metadata['version'] = val
+                        metadata['version'] = parts[1].split('*/')[0].strip()
                         
                 if 'AUTHOR:' in line:
-                    # Extract text after AUTHOR: and before closing */
                     parts = line.split('AUTHOR:')
                     if len(parts) > 1:
-                        val = parts[1].split('*/')[0].strip()
-                        metadata['author'] = val
+                        metadata['author'] = parts[1].split('*/')[0].strip()
+
+                if 'NAME:' in line:
+                    parts = line.split('NAME:')
+                    if len(parts) > 1:
+                        metadata['name'] = parts[1].split('*/')[0].strip()
+
+                if 'DESCRIPTION:' in line:
+                    parts = line.split('DESCRIPTION:')
+                    if len(parts) > 1:
+                        metadata['description'] = parts[1].split('*/')[0].strip()
                         
     except Exception:
         pass

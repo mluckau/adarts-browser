@@ -393,6 +393,82 @@ def edit_css():
             else:
                 flash('Ungültige Preset-Daten.', 'danger')
 
+        elif action == 'export_theme':
+            export_name = request.form.get('export_name', 'theme')
+            safe_filename = _sanitize_theme_name(export_name)
+            if not safe_filename:
+                safe_filename = "theme"
+                
+            # Metadata fields
+            meta_name = request.form.get('export_display_name', '')
+            meta_author = request.form.get('export_author', '')
+            meta_desc = request.form.get('export_description', '')
+            meta_ver = request.form.get('export_version', '1.0')
+            
+            # CSS Content (from editor)
+            content = request.form.get('css_content', '')
+            
+            # Build Header
+            header = []
+            if meta_name: header.append(f"/* NAME: {meta_name} */")
+            if meta_author: header.append(f"/* AUTHOR: {meta_author} */")
+            if meta_desc: header.append(f"/* DESCRIPTION: {meta_desc} */")
+            if meta_ver: header.append(f"/* VERSION: {meta_ver} */")
+            
+            if header:
+                final_content = "\n".join(header) + "\n\n" + content
+            else:
+                final_content = content
+
+            # Send as file
+            buffer = io.BytesIO()
+            buffer.write(final_content.encode('utf-8'))
+            buffer.seek(0)
+            
+            return send_file(
+                buffer,
+                as_attachment=True,
+                download_name=f"{safe_filename}.css",
+                mimetype='text/css'
+            )
+
+        elif action == 'import_theme':
+            if 'import_file' not in request.files:
+                flash('Keine Datei ausgewählt.', 'danger')
+            else:
+                file = request.files['import_file']
+                if file.filename == '':
+                    flash('Keine Datei ausgewählt.', 'danger')
+                elif file and file.filename.endswith('.css'):
+                    try:
+                        content = file.read().decode('utf-8')
+                        
+                        # Try to find NAME metadata in content to determine filename
+                        theme_name = None
+                        lines = content.splitlines()[:10] # Check first 10 lines
+                        for line in lines:
+                            if '/* NAME:' in line:
+                                parts = line.split('NAME:')
+                                if len(parts) > 1:
+                                    extracted_name = parts[1].split('*/')[0].strip()
+                                    if extracted_name:
+                                        theme_name = extracted_name
+                                        break
+                        
+                        # Fallback to filename if no NAME metadata found
+                        if not theme_name:
+                             filename = secure_filename(file.filename)
+                             theme_name = os.path.splitext(filename)[0]
+                        
+                        if save_theme(theme_name, content):
+                            flash(f'Theme "{theme_name}" erfolgreich importiert.', 'success')
+                        else:
+                            flash('Fehler beim Speichern des Themes.', 'danger')
+                    except Exception as e:
+                        flash(f'Fehler beim Importieren: {e}', 'danger')
+                else:
+                    flash('Ungültiges Dateiformat. Bitte eine .css Datei wählen.', 'danger')
+
         return redirect(url_for('edit_css'))
 
     # GET request

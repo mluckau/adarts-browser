@@ -9,17 +9,24 @@ Alle Änderungen am Projekt werden in dieser Datei dokumentiert.
   - Unterstützung für Theme-Autoren (Anzeige und Speicherung).
   - **Export-Funktion**: Themes können mit eingebetteten Metadaten (Name, Autor, Beschreibung, Version) exportiert werden.
   - **Import-Funktion**: Themes können per CSS-Datei importiert werden (optional mit Metadaten aus der Datei).
-- **Vereinfachte Installation**: Neues `install.sh` Skript für die automatische Ersteinrichtung der virtuellen Umgebung und Abhängigkeiten.
+- **Vereinfachte Installation**:
+  - Neues `install.sh` Skript für die automatische Ersteinrichtung der virtuellen Umgebung und Abhängigkeiten.
+  - `install.sh` bietet nun optional die Installation von **Build-Tools** (z.B. `gcc`) und **`unclutter`** (zum Ausblenden des Mauszeigers) an, systemabhängig (`pacman`/`apt`).
 - **Automatischer Abhängigkeits-Check**: Nach einem In-App Update (`git pull`) werden nun automatisch neue Python-Abhängigkeiten (`pip install -r requirements.txt`) installiert.
 
 ### Geändert
-- **Dokumentation**: `README.md` und `install.md` wurden aktualisiert, um den neuen Installationsprozess und die Theme-Beitragsmöglichkeiten (via GitHub Issues) zu beschreiben.
+- **Dokumentation**: `README.md` und `install.md` wurden aktualisiert, um den neuen Installationsprozess, die Theme-Beitragsmöglichkeiten (via GitHub Issues) und den Hinweis zur `unclutter`-Nutzung zu beschreiben.
 - **UI/UX**: Metadaten-Kommentare (`/* VERSION: ... */`, `/* AUTHOR: ... */` etc.) werden beim Laden von CSS-Dateien in den Editor entfernt, um eine sauberere Bearbeitungsansicht zu ermöglichen.
 - **Theme-Beitrag**: Option zur Einreichung von Themes nun auch über GitHub Issues.
+- **`start.sh`**: VM-spezifische Grafikeinstellungen wurden entfernt, um das Skript generischer zu halten.
 
 ### Behoben
 - **Theme-Metadaten-Duplikation**: Das Problem der doppelten Metadaten-Kommentare beim Speichern von Themes wurde behoben.
 - **UX-Export-Modal**: Das Export-Modal schließt sich nun automatisch nach dem Initiieren eines Downloads.
+- **Installation**: Behebung des Syntaxfehlers im `install.sh` Skript.
+
+### Hinweise
+- **Grafische Probleme in VMs**: Hinweise zur Behebung von "Speicherzugriffsfehlern" in virtuellen Umgebungen durch Deaktivierung der Hardware-Beschleunigung (`QTWEBENGINE_CHROMIUM_FLAGS`, `QT_XCB_GL_INTEGRATION`) wurden zur `README.md` hinzugefügt.
 
 ## [0.3.0] - 2025-12-12
 

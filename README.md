@@ -7,7 +7,7 @@ Ein spezialisierter Kiosk-Browser zur Anzeige von [Autodarts](https://autodarts.
 - **Anzeige von 1 oder 2 Boards**: Zeigt je nach Konfiguration ein oder zwei Autodarts-Boards übereinander an.
 - **Vollbildmodus**: Startet automatisch im Vollbild auf einem festgelegten Bildschirm.
 - **Zoom-Faktor**: Skalierung der Anzeige anpassbar (z.B. für große Fernseher).
-- **Automatischer Login**: Kann sich automatisch in Autodarts einloggen, um private Boards anzuzeigen.
+- **Automatischer Login**: Kann sich automatisch in Autodarts einloggen.
 - **Auto-Refresh**: Lädt die Seiten in einem konfigurierbaren Intervall neu, um die Verbindung aktiv zu halten.
 - **Offline-Erkennung**: Zeigt bei Verbindungsabbruch eine informative Warteseite anstatt eines Fehlers und verbindet sich automatisch neu.
 - **QR-Code Connect**: Zeigt beim Start (und permanent im Setup-Modus) einen QR-Code auf dem Display an, um schnell zur Konfigurationsseite auf dem Smartphone zu gelangen.

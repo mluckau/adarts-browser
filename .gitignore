@@ -23,3 +23,4 @@ logs
 .reload_trigger
 themes
 theme_repo_setup/themes.json
+style.css

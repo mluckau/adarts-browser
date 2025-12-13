@@ -220,6 +220,14 @@ def git_perform_update():
     Returns: (success: bool, message: str)
     """
     try:
+        # Special handling for style.css transition (tracked -> untracked)
+        # If git status shows style.css as modified/tracked, untrack it locally first
+        # to prevent "would be overwritten by merge" error.
+        try:
+            subprocess.check_call(['git', 'rm', '--cached', 'style.css'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        except Exception:
+            pass # Ignore if already untracked
+
         # 1. git pull
         pull_output = subprocess.check_output(['git', 'pull'], stderr=subprocess.STDOUT).decode('utf-8')
         
@@ -232,7 +240,25 @@ def git_perform_update():
         
         return True, f"Update erfolgreich!\nGit:\n{pull_output}\nPip:\n{pip_output}"
     except subprocess.CalledProcessError as e:
-        return False, f"Update fehlgeschlagen:\n{e.output.decode('utf-8')}"
+        err_msg = e.output.decode('utf-8')
+        # Fallback: If pull failed due to other local changes, try stash
+        if "Please commit your changes or stash them" in err_msg:
+            try:
+                subprocess.check_call(['git', 'stash'], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+                # Retry pull
+                pull_output = subprocess.check_output(['git', 'pull'], stderr=subprocess.STDOUT).decode('utf-8')
+                
+                # Retry pip
+                pip_output = subprocess.check_output(
+                    [sys.executable, '-m', 'pip', 'install', '-r', 'requirements.txt'], 
+                    stderr=subprocess.STDOUT
+                ).decode('utf-8')
+                
+                return True, f"Update erfolgreich (lokale Änderungen wurden gestashed)!\nGit:\n{pull_output}\nPip:\n{pip_output}"
+            except Exception as stash_err:
+                return False, f"Update fehlgeschlagen (Stash nicht möglich): {stash_err}\nOriginal Fehler:\n{err_msg}"
+
+        return False, f"Update fehlgeschlagen:\n{err_msg}"
     except Exception as e:
         return False, f"Unerwarteter Fehler: {e}"
 

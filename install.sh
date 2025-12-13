@@ -76,6 +76,37 @@ if [ ! -f "config.ini" ]; then
     fi
 fi
 
+# 6. Generate Desktop Entry
+echo "Generating autodarts-browser.desktop..."
+CURRENT_DIR=$(pwd)
+START_SCRIPT="$CURRENT_DIR/start.sh"
+
+cat > autodarts-browser.desktop <<EOF
+[Desktop Entry]
+Type=Application
+Name=Autodarts-Browser
+Comment=Der Autodarts-Browser
+Exec=$START_SCRIPT
+StartupNotify=false
+Terminal=false
+Hidden=false
+EOF
+
+chmod +x autodarts-browser.desktop
+echo "Created 'autodarts-browser.desktop' in the current directory."
+
+# 7. Optional: Install to Autostart
+if [ -d "$HOME/.config/autostart" ]; then
+    read -p "Do you want to install the autostart entry to ~/.config/autostart? (y/N) " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        cp autodarts-browser.desktop "$HOME/.config/autostart/"
+        echo "Autostart entry installed."
+    fi
+else
+    echo "Autostart directory not found ($HOME/.config/autostart). You can copy the .desktop file manually if needed."
+fi
+
 echo ""
 echo "=== Installation Complete! ==="
 echo "You can now start the application with:"

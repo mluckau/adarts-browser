@@ -5,6 +5,7 @@ Alle Änderungen am Projekt werden in dieser Datei dokumentiert.
 ## [0.3.1] - 2025-12-12
 
 ### Hinzugefügt
+- **Dark Mode**: Ein Theme-Umschalter (Hell/Dunkel) wurde im Web-Interface implementiert (Navigationsleiste). Die Einstellung wird dauerhaft gespeichert.
 - **Theme-Verwaltung erweitert**:
   - Unterstützung für Theme-Autoren (Anzeige und Speicherung).
   - **Export-Funktion**: Themes können mit eingebetteten Metadaten (Name, Autor, Beschreibung, Version) exportiert werden.
@@ -12,6 +13,7 @@ Alle Änderungen am Projekt werden in dieser Datei dokumentiert.
 - **Vereinfachte Installation**:
   - Neues `install.sh` Skript für die automatische Ersteinrichtung der virtuellen Umgebung und Abhängigkeiten.
   - `install.sh` bietet nun optional die Installation von **Build-Tools** (z.B. `gcc`) und **`unclutter`** (zum Ausblenden des Mauszeigers) an, systemabhängig (`pacman`/`apt`).
+  - **Desktop-Shortcut**: `install.sh` generiert nun automatisch eine passende `autodarts-browser.desktop` Datei und bietet die Installation in den Autostart an.
 - **Automatischer Update-Check**: Das Webinterface sucht nun automatisch im Hintergrund nach Updates.
 - **Visueller Update-Indikator**: Ein grünes "Update verfügbar!"-Badge wird in der Navigationsleiste angezeigt, wenn ein Update entdeckt wird.
 - **Automatischer Abhängigkeits-Check**: Nach einem In-App Update (`git pull`) werden nun automatisch neue Python-Abhängigkeiten (`pip install -r requirements.txt`) installiert.

@@ -1,5 +1,7 @@
 # Autodarts-Browser
 
+[![License: CC BY-NC-SA 4.0](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-lightgrey.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
+
 Ein spezialisierter Kiosk-Browser zur Anzeige von [Autodarts](https://autodarts.io) "Follow"-Boards. Die Anwendung ist für den maus- und tastaturlosen Betrieb auf einem dedizierten Display (z.B. einem Fernseher über einem Dartboard) konzipiert und wird vollständig über eine Konfigurationsdatei gesteuert.
 
 ## Features
@@ -271,3 +273,15 @@ Für einen reinen Anzeige-Modus (Kiosk) ist der Mauszeiger oft störend. Wir emp
 
 *   **Installation:** Das `install.sh` Skript fragt Sie bei der Installation, ob `unclutter` installiert werden soll.
 *   **Nutzung:** Damit der Mauszeiger verschwindet, muss `unclutter` im Hintergrund laufen. Fügen Sie dazu `unclutter &` in Ihre Autostart-Konfiguration (z.B. `.xinitrc` oder vor dem Startbefehl in der `.desktop` Datei) ein.
+
+## Lizenz
+
+Dieses Projekt ist unter der **Creative Commons Attribution-NonCommercial-ShareAlike 4.0 International (CC BY-NC-SA 4.0)** Lizenz veröffentlicht.
+
+Kurzfassung:
+*   ✅ **Teilen & Bearbeiten:** Sie dürfen den Code kopieren, verteilen und verändern.
+*   👤 **Namensnennung:** Sie müssen den Urheber ([mluckau (GitHub)](https://github.com/mluckau)) nennen.
+*   💲 **Nicht-kommerziell:** Sie dürfen das Projekt nicht für kommerzielle Zwecke nutzen.
+*   🔄 **Weitergabe unter gleichen Bedingungen:** Wenn Sie den Code verändern, müssen Sie ihn unter derselben Lizenz veröffentlichen.
+
+Den vollständigen Lizenztext finden Sie in der Datei `LICENSE`.

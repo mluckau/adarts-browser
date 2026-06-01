@@ -17,9 +17,36 @@ try {
     var loginInterval = setInterval(function() {
         attempts++;
         
-        var userField = document.querySelector('input[autocomplete="username"]') || document.getElementById('username');
-        var passField = document.querySelector('input[autocomplete="current-password"]') || document.getElementById('password');
-        var submitBtn = document.querySelector('button[type="submit"]') || document.getElementById('kc-login');
+        // Heuristische Erkennung der Login-Elemente (zukunftssicher)
+        var passField = document.querySelector('input[type="password"]');
+        var userField = null;
+        var submitBtn = null;
+
+        if (passField) {
+            var container = passField.closest('form') || document;
+            
+            userField = container.querySelector('input[autocomplete="username"]') ||
+                        container.querySelector('input[name="username"]') ||
+                        container.querySelector('input[name="email"]') ||
+                        container.querySelector('input[type="email"]') ||
+                        container.querySelector('input[type="text"]') ||
+                        document.getElementById('username');
+            
+            submitBtn = container.querySelector('button[type="submit"]') ||
+                        container.querySelector('input[type="submit"]') ||
+                        document.getElementById('kc-login');
+
+            if (!submitBtn) {
+                var buttons = container.querySelectorAll('button');
+                for (var i = 0; i < buttons.length; i++) {
+                    var txt = buttons[i].innerText.toLowerCase();
+                    if (txt.includes('login') || txt.includes('signin') || txt.includes('anmelden') || txt.includes('inloggen') || txt.includes('sign-in')) {
+                        submitBtn = buttons[i];
+                        break;
+                    }
+                }
+            }
+        }
 
         if (userField && passField && submitBtn) {
             console.log("[Autologin] Elemente gefunden. Setze Werte...");

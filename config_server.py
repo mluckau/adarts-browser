@@ -134,6 +134,7 @@ class ConfigForm(Form):
     # Advanced / QR
     show_qr = BooleanField('QR-Code beim Start anzeigen')
     qr_duration = IntegerField('Anzeigedauer des QR-Codes (Sekunden)')
+    remote_debugging_port = IntegerField('Remote Debugging Port (0 = aus, z.B. 9222)', [validators.NumberRange(min=0, max=65535)])
 
 class CSSForm(Form):
     css_content = TextAreaField('CSS Inhalt')
@@ -286,6 +287,7 @@ def index():
         # Advanced / QR
         config.set('main', 'show_qr', str(form.show_qr.data).lower())
         config.set('main', 'qr_duration', form.qr_duration.data)
+        config.set('main', 'remote_debugging_port', form.remote_debugging_port.data)
 
         config.save()
         trigger_restart()
@@ -304,6 +306,7 @@ def index():
         # QR Defaults
         form.show_qr.data = config.getboolean('main', 'show_qr', fallback=True)
         form.qr_duration.data = config.getint('main', 'qr_duration', fallback=15)
+        form.remote_debugging_port.data = config.getint('main', 'remote_debugging_port', fallback=0)
         
         form.board1_id.data = config.get('boards', 'board1_id', fallback='')
         form.board2_id.data = config.get('boards', 'board2_id', fallback='')
@@ -642,6 +645,17 @@ def create_backup():
                         # Archive name relative to THEMES_DIR parent, so it includes 'themes/'
                         arcname = os.path.relpath(file_path, APP_DIR)
                         zf.write(file_path, arcname=arcname)
+
+            # Add local logo if configured
+            config_obj = get_config()
+            if config_obj.logos_enabled and config_obj.logos_local and config_obj.logo_source:
+                try:
+                    logo_path = (APP_DIR / config_obj.logo_source).resolve()
+                    if logo_path.exists() and logo_path.is_file() and APP_DIR.resolve() in logo_path.parents:
+                        arcname = os.path.relpath(logo_path, APP_DIR)
+                        zf.write(logo_path, arcname=arcname)
+                except Exception as e:
+                    print(f"[WARN] Failed to add local logo to backup: {e}")
         
         memory_file.seek(0)
         timestamp = time.strftime("%Y%m%d-%H%M%S")

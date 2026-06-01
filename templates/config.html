@@ -67,6 +67,11 @@
                                             <label for="qr_duration" class="form-label">{{ form.qr_duration.label }}</label>
                                             {{ form.qr_duration(class="form-control", type="number") }}
                                         </div>
+                                        <div class="mb-3">
+                                            <label for="remote_debugging_port" class="form-label">{{ form.remote_debugging_port.label }}</label>
+                                            {{ form.remote_debugging_port(class="form-control", type="number", min=0, max=65535) }}
+                                            <div class="form-text">Aktiviert den Remote-Chromium-Inspektor auf dem angegebenen Port (z.B. 9222). 0 = deaktiviert. Rufe nach dem Speichern am Entwicklungs-PC in Chrome/Edge <code>chrome://inspect</code> auf und füge die IP des Kiosks und den Port hinzu.</div>
+                                        </div>
                                     </div>
                                 </div>
                         <!-- Boards -->

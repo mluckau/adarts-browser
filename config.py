@@ -175,6 +175,13 @@ class AppConfig:
         return self._config.getint("main", "qr_duration", fallback=15)
     
     @property
+    def remote_debugging_port(self):
+        try:
+            return self._config.getint("main", "remote_debugging_port", fallback=0)
+        except ValueError:
+            return 0
+    
+    @property
     def view_mode(self):
         # Migration logic for old boolean setting
         old_auto_coords = self._config.getboolean("style", "auto_coords_mode", fallback=False)

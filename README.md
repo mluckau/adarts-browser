@@ -101,6 +101,19 @@ Nach dem Start der Anwendung ist eine komfortable Konfigurationsoberfläche übe
 - **Themes verwalten**: Im CSS-Editor Themes speichern, laden oder löschen.
 - Die Anwendung neu starten, den Browser-Cache löschen oder System-Logs einsehen.
 
+## Remote-Debugging (CSS-Elemente ermitteln)
+
+Da der Kiosk-Rechner meist ohne Tastatur und Maus betrieben wird, ist das Ermitteln von CSS-Selektoren für das Custom Styling schwierig. Der Autodarts-Browser verfügt daher über eine integrierte Remote-Debugging-Funktion.
+
+### Einrichtung & Nutzung:
+
+1. **Aktivieren:** Öffnen Sie das Web-Interface, tragen Sie unter *Allgemeine Einstellungen* bei **Remote Debugging Port** einen freien Port ein (z.B. `9222`) und klicken Sie auf **Speichern & Neustarten** (Wert `0` deaktiviert die Funktion).
+2. **PC verbinden:** Öffnen Sie an Ihrem PC oder Laptop (im selben Netzwerk) einen auf Chromium basierenden Browser (Google Chrome, Microsoft Edge, Brave etc.).
+3. **Konfigurieren:** Rufen Sie im Browser die Spezialadresse `chrome://inspect` auf.
+4. **IP eintragen:** Klicken Sie neben *Discover network targets* auf **Configure...** und fügen Sie die IP des Kiosk-PCs zusammen mit dem Port hinzu (z.B. `192.168.2.136:9222`). Bestätigen Sie mit **Done**.
+5. **Inspizieren:** Unter *Remote Target* tauchen nach kurzer Zeit die offenen Tabs des Kiosk-Browsers auf. Klicken Sie auf **inspect**.
+6. **CSS anpassen:** Es öffnet sich die gespiegelte Chrome-Entwicklerkonsole (F12). Sie können nun Elemente auswählen, CSS live testen und die fertigen Selektoren in den CSS-Editor des Web-Interfaces übertragen.
+
 ## Manuelle Konfiguration (`config.ini`)
 
 Alternativ zur Web-Oberfläche kann die Anwendung auch direkt über die `config.ini` gesteuert werden.
@@ -137,6 +150,11 @@ Allgemeine Einstellungen für die Anwendung.
 
 - **`screen`**
   - Index des Bildschirms.
+  - **Standard**: `0`
+
+- **`remote_debugging_port`**
+  - Port für remote Chromium Developer Tools.
+  - **Werte**: `0` (deaktiviert) oder Portnummer (z.B. `9222`)
   - **Standard**: `0`
 
 ---

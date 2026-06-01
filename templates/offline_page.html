@@ -1,62 +1,115 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="de">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Verbindungsproblem</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
         body {
-            background-color: #212529; /* Dark background */
-            color: #f8f9fa; /* Light text */
+            background-color: #0f1115; /* Elegant deep dark background */
+            color: #e2e8f0; /* Soft light text */
             display: flex;
             justify-content: center;
             align-items: center;
             min-height: 100vh;
             margin: 0;
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
             text-align: center;
         }
-        .container {
-            max-width: 600px;
-            padding: 30px;
-            border-radius: 10px;
-            background-color: #343a40; /* Slightly lighter dark card */
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        .card {
+            max-width: 500px;
+            width: 90%;
+            padding: 40px;
+            border-radius: 16px;
+            background: rgba(30, 41, 59, 0.7); /* Slate-800 with transparency */
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 10px 30px 0 rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
         }
         h1 {
-            color: #dc3545; /* Red for error */
+            color: #f87171; /* Soft red for warning */
+            font-size: 1.8rem;
+            margin-top: 0;
             margin-bottom: 20px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
         }
-        .spinner-border {
-            color: #007bff; /* Blue for loading */
+        h1 svg {
+            fill: currentColor;
+            width: 1.8rem;
+            height: 1.8rem;
+        }
+        .spinner {
+            display: inline-block;
             width: 3rem;
             height: 3rem;
+            border: 4px solid rgba(255, 255, 255, 0.1);
+            border-radius: 50%;
+            border-top-color: #3b82f6; /* Modern Blue */
+            animation: spin 1s linear infinite;
+            margin: 20px auto;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
         }
         .info-text {
             font-size: 1.1rem;
+            line-height: 1.6;
             margin-top: 20px;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
+            color: #cbd5e1;
         }
-        .progress-bar {
-            background-color: #007bff;
+        .progress-container {
+            width: 100%;
+            background-color: rgba(255, 255, 255, 0.08);
+            border-radius: 9999px;
+            height: 6px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+        .progress-bar-custom {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #10b981); /* Blue to green gradient */
+            width: 40%;
+            border-radius: 9999px;
+            animation: progress-pulse 2s infinite ease-in-out;
+        }
+        @keyframes progress-pulse {
+            0% {
+                transform: translateX(-100%);
+            }
+            100% {
+                transform: translateX(250%);
+            }
+        }
+        .status-text {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            font-weight: 500;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1><i class="bi bi-exclamation-triangle-fill"></i> Verbindungsproblem</h1>
-        <div class="spinner-border" role="status">
-            <span class="visually-hidden">Lädt...</span>
-        </div>
+    <div class="card">
+        <h1>
+            <svg viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/>
+            </svg>
+            Verbindungsproblem
+        </h1>
+        <div class="spinner" role="status"></div>
         <p class="info-text">
             Die Verbindung zu Autodarts.io oder zum Internet wurde unterbrochen.<br>
             Die Seite versucht automatisch, die Verbindung wiederherzustellen.
         </p>
-        <div class="progress" style="height: 5px;">
-            <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100"></div>
+        <div class="progress-container">
+            <div class="progress-bar-custom"></div>
         </div>
-        <small class="text-muted mt-3 d-block">Bitte warten...</small>
+        <div class="status-text">Bitte warten...</div>
     </div>
 </body>
 </html>

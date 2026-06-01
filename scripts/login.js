@@ -17,9 +17,9 @@ try {
     var loginInterval = setInterval(function() {
         attempts++;
         
-        var userField = document.getElementById('username');
-        var passField = document.getElementById('password');
-        var submitBtn = document.getElementById('kc-login');
+        var userField = document.querySelector('input[autocomplete="username"]') || document.getElementById('username');
+        var passField = document.querySelector('input[autocomplete="current-password"]') || document.getElementById('password');
+        var submitBtn = document.querySelector('button[type="submit"]') || document.getElementById('kc-login');
 
         if (userField && passField && submitBtn) {
             console.log("[Autologin] Elemente gefunden. Setze Werte...");

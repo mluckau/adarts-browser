@@ -74,6 +74,7 @@ class BrowserView(QWebEngineView):
 
         # Create profile and page without parents to manage their lifecycle manually
         self.profile = QWebEngineProfile(f"browser-{browser_id}")
+        self.profile.setHttpUserAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36")
 
         # Ensure cache directory is relative to the app's directory
         cache_dir = config.cache_dir.lstrip('/\\')
@@ -485,10 +486,20 @@ def perform_cache_cleanup():
 
 def main():
     try:
-        # Setup logging
+        # Setup logging with rotation (max 5 MB, keep 3 backups)
         import logging
-        logging.basicConfig(filename=str(LOG_PATH), level=logging.INFO,
-                            format='%(asctime)s - %(levelname)s - %(message)s')
+        from logging.handlers import RotatingFileHandler
+        handler = RotatingFileHandler(
+            str(LOG_PATH),
+            maxBytes=5 * 1024 * 1024,
+            backupCount=3,
+            encoding='utf-8'
+        )
+        logging.basicConfig(
+            level=logging.INFO,
+            format='%(asctime)s - %(levelname)s - %(message)s',
+            handlers=[handler]
+        )
 
         # Redirect stdout and stderr to the log file
         class LogWriter:
@@ -513,6 +524,12 @@ def main():
         # Start the configuration server
         print("Starting configuration server on http://0.0.0.0:5000")
         start_server()
+
+        # Setup Remote Debugging if configured
+        remote_debug_port = config.remote_debugging_port
+        if remote_debug_port > 0:
+            os.environ["QTWEBENGINE_REMOTE_DEBUGGING"] = str(remote_debug_port)
+            print(f"[INFO] Remote debugging enabled on port: {remote_debug_port}")
 
         app = QApplication(sys.argv)
 
